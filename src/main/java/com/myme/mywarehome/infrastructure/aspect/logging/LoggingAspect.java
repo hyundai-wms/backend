@@ -23,7 +23,7 @@ public class LoggingAspect {
     private static final int LONG_EXECUTION_TIME = 1000;
 
     // API 컨트롤러 메소드 로깅
-    @Around("execution(* com.myme.mywarehome.domains..*.web.*.*(..))")
+    @Around("execution(* com.myme.mywarehome.domains.*.adapter.web.*.*(..))")
     public Object loggingApi(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
 
@@ -69,7 +69,7 @@ public class LoggingAspect {
     }
 
     // 서비스 레이어 메소드 실행 시간 측정
-    @Around("execution(* com.myme.mywarehome.domains..*.service.*.*(..))")
+    @Around("execution(* com.myme.mywarehome.domains.*.adapter.web.*.*(..))")
     public Object loggingServiceExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
 
