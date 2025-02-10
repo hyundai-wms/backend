@@ -19,6 +19,8 @@ public class UserController {
 
     @PostMapping
     public CommonResponse<CreateUserResponse> create(@Valid @RequestBody CreateUserRequest userCreateRequest) {
-        return CommonResponse.from(createUserUseCase.create(userCreateRequest));
+        return CommonResponse.from(
+                CreateUserResponse.of(createUserUseCase.create(userCreateRequest.toEntity()))
+        );
     }
 }

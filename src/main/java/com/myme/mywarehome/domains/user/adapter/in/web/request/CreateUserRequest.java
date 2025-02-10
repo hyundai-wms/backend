@@ -1,5 +1,7 @@
 package com.myme.mywarehome.domains.user.adapter.in.web.request;
 
+import com.myme.mywarehome.domains.user.application.domain.Role;
+import com.myme.mywarehome.domains.user.application.domain.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -21,5 +23,12 @@ public record CreateUserRequest(
         @Pattern(regexp = "^(ADMIN|MIDDLE_MANAGER|WMS_MANAGER|WORKER)$", message = "올바른 역할이 아닙니다.(ADMIN, MIDDLE_MANAGER, WMS_MANAGER, WORKER)")
         String role
 ) {
-
+        public User toEntity() {
+                return User.builder()
+                        .name(this.name)
+                        .phoneNumber(this.phoneNumber)
+                        .id(this.id)
+                        .role(Role.fromString(this.role))
+                        .build();
+        }
 }
