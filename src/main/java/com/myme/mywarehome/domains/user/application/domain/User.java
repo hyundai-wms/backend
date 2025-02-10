@@ -36,4 +36,9 @@ public class User extends BaseTimeEntity {
         this.password = password;
         this.role = role;
     }
+
+    public void changePassword(String password) {
+        // todo : 패스워드 유효성 검사
+        this.password = password;
+    }
 }

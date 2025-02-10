@@ -14,13 +14,13 @@ public record CreateUserResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static CreateUserResponse of(User user, String temporalPassword) {
+    public static CreateUserResponse of(User user) {
         return new CreateUserResponse(
                 user.getUserId(),
                 user.getName(),
                 user.getPhoneNumber(),
                 user.getId(),
-                temporalPassword,
+                user.getPassword(),
                 user.getRole().getRoleName(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
