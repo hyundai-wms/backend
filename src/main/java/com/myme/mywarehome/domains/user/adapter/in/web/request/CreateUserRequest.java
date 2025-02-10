@@ -16,7 +16,7 @@ public record CreateUserRequest(
         String phoneNumber,
 
         @NotBlank(message = "아이디는 필수입니다.")
-        @Size(min = 4, max = 12, message = "아이디는 4자 이상 12자 이하여야 합니다.")
+        @Size(min = 6, max = 12, message = "아이디는 6자 이상 12자 이하여야 합니다.")
         String id,
 
         @NotNull(message = "역할은 필수입니다.")

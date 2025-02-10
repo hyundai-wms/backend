@@ -1,8 +1,5 @@
 package com.myme.mywarehome.domains.user.application.service;
 
-import com.myme.mywarehome.domains.user.adapter.in.web.request.CreateUserRequest;
-import com.myme.mywarehome.domains.user.adapter.in.web.response.CreateUserResponse;
-import com.myme.mywarehome.domains.user.application.domain.Role;
 import com.myme.mywarehome.domains.user.application.domain.User;
 import com.myme.mywarehome.domains.user.application.port.in.CreateUserUseCase;
 import com.myme.mywarehome.domains.user.application.port.out.CreateUserPort;
@@ -20,7 +17,6 @@ public class CreateUserService implements CreateUserUseCase {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional
     public User create(User user) {
 
         String temporalPassword = generateRandomString(6);
