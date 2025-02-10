@@ -4,6 +4,7 @@ import com.myme.mywarehome.domains.user.adapter.in.web.request.CreateUserRequest
 import com.myme.mywarehome.domains.user.adapter.in.web.response.CreateUserResponse;
 import com.myme.mywarehome.domains.user.application.port.in.CreateUserUseCase;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +18,7 @@ public class UserController {
     private final CreateUserUseCase createUserUseCase;
 
     @PostMapping
-    public CommonResponse<CreateUserResponse> create(@RequestBody CreateUserRequest userCreateRequest) {
+    public CommonResponse<CreateUserResponse> create(@Valid @RequestBody CreateUserRequest userCreateRequest) {
         return CommonResponse.from(createUserUseCase.create(userCreateRequest));
     }
 }
