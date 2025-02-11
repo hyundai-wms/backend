@@ -15,10 +15,7 @@ public class GetVendorAdapter implements GetVendorPort {
 
     @Override
     public Page<Company> findVendors(String companyCode, String companyName, Pageable pageable) {
-        // null 체크는 어댑터에서 처리
-        String codePattern = companyCode == null ? "%" : "%" + companyCode + "%";
-        String namePattern = companyName == null ? "%" : "%" + companyName + "%";
 
-        return companyJpaRepository.findVendorsByConditions(codePattern, namePattern, pageable);
+        return companyJpaRepository.findVendorsByConditions(companyCode, companyName, pageable);
     }
 }
