@@ -35,6 +35,6 @@ public class UpdateUserPasswordService implements UpdateUserPasswordUseCase {
         // 새로운 비밀번호 저장
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         user.changePassword(encodedNewPassword);
-        updateUserPort.updateUserPassword(user);
+        updateUserPort.updateUser(user);
     }
 }

@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface UpdateUserPort {
     Optional<User> findUserByUserId(Long userId);
-    void updateUserPassword(User user);
+    void updateUserRoleToMiddleManager(Long userId);
+    Optional<User> updateUser(User user);
 }

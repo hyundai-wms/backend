@@ -1,7 +1,6 @@
 package com.myme.mywarehome.domains.user.adapter.in.web.response;
 
-import com.myme.mywarehome.domains.user.application.domain.User;
-import com.myme.mywarehome.domains.user.application.dto.out.CreatedUserInfoDto;
+import com.myme.mywarehome.domains.user.application.dto.out.CreatedUserInfoResult;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +14,7 @@ public record CreateUserResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static CreateUserResponse of(CreatedUserInfoDto createdUserInfoDto) {
+    public static CreateUserResponse of(CreatedUserInfoResult createdUserInfoDto) {
         return new CreateUserResponse(
                 createdUserInfoDto.user().getUserId(),
                 createdUserInfoDto.user().getName(),

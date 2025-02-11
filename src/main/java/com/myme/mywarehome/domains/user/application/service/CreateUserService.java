@@ -2,7 +2,7 @@ package com.myme.mywarehome.domains.user.application.service;
 
 import com.myme.mywarehome.domains.user.application.domain.Role;
 import com.myme.mywarehome.domains.user.application.domain.User;
-import com.myme.mywarehome.domains.user.application.dto.out.CreatedUserInfoDto;
+import com.myme.mywarehome.domains.user.application.dto.out.CreatedUserInfoResult;
 import com.myme.mywarehome.domains.user.application.exception.UserDuplicateException;
 import com.myme.mywarehome.domains.user.application.port.in.CreateUserUseCase;
 import com.myme.mywarehome.domains.user.application.port.out.CreateUserPort;
@@ -24,7 +24,7 @@ public class CreateUserService implements CreateUserUseCase {
 
     @Override
     @Transactional
-    public CreatedUserInfoDto create(User user) {
+    public CreatedUserInfoResult create(User user) {
         // ID, PhoneNumber 중복 여부 검사
         boolean isIdDuplicated = createUserPort.existsUserById(user.getId());
         boolean isPhoneNumberDuplicated = createUserPort.existsUserByPhoneNumber(user.getPhoneNumber());
@@ -57,6 +57,6 @@ public class CreateUserService implements CreateUserUseCase {
         User createdUser = createUserPort.create(user);
 
         // 생성된 유저에 임시 비밀번호를 함께 전달
-        return new CreatedUserInfoDto(createdUser, temporalPassword);
+        return new CreatedUserInfoResult(createdUser, temporalPassword);
     }
 }
