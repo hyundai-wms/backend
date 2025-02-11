@@ -22,4 +22,14 @@ public class GetUserAdapter implements GetUserPort {
     public Optional<User> findUserByUserId(Long userId) {
         return userJpaRepository.findByUserId(userId);
     }
+
+    @Override
+    public boolean existsUserById(String id) {
+        return userJpaRepository.existsById(id);
+    }
+
+    @Override
+    public boolean existsUserByPhoneNumber(String phoneNumber) {
+        return userJpaRepository.existsByPhoneNumber(phoneNumber);
+    }
 }

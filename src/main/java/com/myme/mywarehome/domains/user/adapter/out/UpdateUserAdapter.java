@@ -19,11 +19,6 @@ public class UpdateUserAdapter implements UpdateUserPort {
     private final UserJpaRepository userJpaRepository;
 
     @Override
-    public Optional<User> findUserByUserId(Long userId) {
-        return userJpaRepository.findByUserId(userId);
-    }
-
-    @Override
     @Transactional
     public void updateUserRoleToMiddleManager(Long userId) {
         User user = userJpaRepository.findById(userId)
