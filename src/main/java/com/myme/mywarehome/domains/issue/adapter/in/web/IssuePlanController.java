@@ -1,19 +1,20 @@
 package com.myme.mywarehome.domains.issue.adapter.in.web;
 
 import com.myme.mywarehome.domains.issue.adapter.in.web.request.CreateIssuePlanRequest;
+import com.myme.mywarehome.domains.issue.adapter.in.web.request.UpdateIssuePlanRequest;
 import com.myme.mywarehome.domains.issue.adapter.in.web.response.CreateIssuePlanResponse;
+import com.myme.mywarehome.domains.issue.adapter.in.web.response.UpdateIssuePlanResponse;
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.issue.application.port.in.CreateIssuePlanUseCase;
+import com.myme.mywarehome.domains.issue.application.port.in.UpdateIssuePlanUseCase;
 import com.myme.mywarehome.domains.product.adapter.out.persistence.ProductJpaRepository;
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.domains.product.application.port.out.GetProductPort;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 public class IssuePlanController {
     private final CreateIssuePlanUseCase createIssuePlanUseCase;
     private final ProductJpaRepository productJpaRepository;
+    private final UpdateIssuePlanUseCase updateIssuePlanUseCase;
+    private final GetProductPort getProductPort;
 
     @PostMapping
     public CommonResponse<CreateIssuePlanResponse> create(@Valid @RequestBody CreateIssuePlanRequest createIssuePlanRequest) {
@@ -57,4 +60,21 @@ public class IssuePlanController {
                         .collect(Collectors.toList())
         );
     }
+
+    @PutMapping("/{issuePlanId}")
+    public CommonResponse<UpdateIssuePlanResponse> update(
+            @PathVariable Long issuePlanId,
+            @Valid @RequestBody UpdateIssuePlanRequest updateIssuePlanRequest) {
+
+        Product product = getProductPort.findByProductNumber(updateIssuePlanRequest.productNumber())
+                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+
+        return CommonResponse.from(
+                UpdateIssuePlanResponse.of(
+                        updateIssuePlanUseCase.update(updateIssuePlanRequest.toEntity(issuePlanId, product))
+                )
+        );
+    }
+
+
 }
