@@ -15,7 +15,7 @@ public class StringHelper {
 
         return sb.toString();
     }
-
+    // Todo: 리팩토링 필요
     public class CodeGenerator {
 
         private static final int CODE_LENGTH = 10;

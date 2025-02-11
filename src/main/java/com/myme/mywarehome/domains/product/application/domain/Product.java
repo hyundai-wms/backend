@@ -1,5 +1,6 @@
 package com.myme.mywarehome.domains.product.application.domain;
 
+import com.myme.mywarehome.domains.companies.application.domain.Company;
 import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -16,9 +17,9 @@ public class Product extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "company_id")
-//    private Company company;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
 
     private String productNumber;
     private String productName;
