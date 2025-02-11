@@ -16,5 +16,7 @@ public class GetVendorService implements GetVendorUseCase {
     private final GetVendorPort getVendorPort;
 
     @Override
-    public Page<Company> getVendors(Pageable pageable) {return getVendorPort.findVendors(pageable);}
+    public Page<Company> getVendors(String companyCode, String companyName, Pageable pageable) {
+        return getVendorPort.findVendors(companyCode, companyName, pageable);
+    }
 }
