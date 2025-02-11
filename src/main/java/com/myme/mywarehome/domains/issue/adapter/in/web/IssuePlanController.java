@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/v1/issues/plans")
+@RequestMapping("/v1/storages/issues/plans")
 @RequiredArgsConstructor
 public class IssuePlanController {
     private final CreateIssuePlanUseCase createIssuePlanUseCase;
