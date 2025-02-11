@@ -18,10 +18,10 @@ public class User extends BaseTimeEntity {
 
     private String name;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String phoneNumber;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String id;
 
     private String password;
@@ -38,7 +38,10 @@ public class User extends BaseTimeEntity {
     }
 
     public void changePassword(String password) {
-        // todo : 패스워드 유효성 검사
         this.password = password;
+    }
+
+    public void changeRole(Role role) {
+        this.role = role;
     }
 }

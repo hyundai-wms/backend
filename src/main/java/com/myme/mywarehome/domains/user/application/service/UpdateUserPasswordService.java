@@ -2,7 +2,7 @@ package com.myme.mywarehome.domains.user.application.service;
 
 import com.myme.mywarehome.domains.user.adapter.out.exception.InvalidCurrentPasswordException;
 import com.myme.mywarehome.domains.user.application.domain.User;
-import com.myme.mywarehome.domains.user.application.domain.exception.UserNotFoundException;
+import com.myme.mywarehome.domains.user.application.exception.UserNotFoundException;
 import com.myme.mywarehome.domains.user.application.port.in.UpdateUserPasswordUseCase;
 import com.myme.mywarehome.domains.user.application.port.out.UpdateUserPort;
 import com.myme.mywarehome.infrastructure.util.security.SecurityUtil;

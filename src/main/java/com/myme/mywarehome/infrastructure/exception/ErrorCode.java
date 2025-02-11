@@ -17,6 +17,7 @@ public enum ErrorCode {
 
     // User
     USER_NOT_FOUND(404, "U001", "해당 유저가 존재하지 않습니다."),
+    USER_DUPLICATED(409, "U002", "이미 등록된 유저입니다."),
 
     // Auth
     LOGIN_FAILED(401, "A001", "아이디 또는 비밀번호가 일치하지 않습니다."),
