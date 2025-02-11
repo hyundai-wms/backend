@@ -6,6 +6,7 @@ import com.myme.mywarehome.domains.user.application.domain.exception.LoginFailed
 import com.myme.mywarehome.domains.user.application.domain.exception.UserNotFoundException;
 import com.myme.mywarehome.domains.user.application.port.in.LoginUseCase;
 import com.myme.mywarehome.domains.user.application.port.out.GetUserPort;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,7 +14,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -22,32 +25,33 @@ import org.springframework.stereotype.Service;
 public class LoginService implements LoginUseCase {
     private final AuthenticationManager authenticationManager;
     private final GetUserPort getUserPort;
+    private final HttpSession httpSession;
 
     @Override
     public User login(String id, String password) {
         try {
-            log.info("Attempting login for user: {}", id);
-
+            // 인증 시도
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(id, password)
             );
 
-            log.info("Authentication successful. Authorities: {}",
-                    authentication.getAuthorities());
+            // SecurityContext 생성 및 설정
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+            SecurityContextHolder.setContext(securityContext);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            Authentication storedAuth = SecurityContextHolder.getContext().getAuthentication();
-            log.info("Stored Authentication in SecurityContext: {}", storedAuth);
-            log.info("Stored Authorities: {}", storedAuth.getAuthorities());
+            // 세션에 SecurityContext를 명시적으로 저장
+            httpSession.setAttribute(
+                    HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                    securityContext
+            );
 
             return getUserPort.findUserById(id)
                     .orElseThrow(UserNotFoundException::new);
+
         } catch (BadCredentialsException e) {
-            log.error("Login failed - Bad credentials for user: {}", id);
             throw new LoginFailedException();
         } catch (AuthenticationException e) {
-            log.error("Login failed - Authentication exception: {}", e.getMessage());
             throw new InvalidCredentialsException();
         }
     }

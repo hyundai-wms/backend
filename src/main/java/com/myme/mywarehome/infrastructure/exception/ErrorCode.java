@@ -22,7 +22,8 @@ public enum ErrorCode {
     LOGIN_FAILED(401, "A001", "아이디 또는 비밀번호가 일치하지 않습니다."),
     INVALID_CREDENTIALS(401, "A002", "인증 정보가 유효하지 않습니다."),
     SESSION_EXPIRED(401, "A003", "세션이 만료되었습니다."),
-    UNAUTHORIZED(403, "A004", "인증되지 않은 사용자입니다.");
+    UNAUTHORIZED(401, "A004", "인증되지 않은 사용자입니다."),
+    FORBIDDEN(403, "A005", "권한이 없습니다.");
 
     private final int status;
     private final String code;
