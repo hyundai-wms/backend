@@ -60,4 +60,36 @@ public class SessionService {
             }
         }
     }
+
+    public void deleteUserSessions(Long userId) {
+        try {
+            // 1. 모든 세션 키 찾기
+            Set<String> sessionKeys = redisTemplate.keys("spring:session:sessions:*");
+
+            for (String sessionKey : sessionKeys) {
+                // 2. 각 세션의 SecurityContext를 가져옴
+                Object securityContextObj = redisTemplate.opsForHash().get(
+                        sessionKey,
+                        "sessionAttr:SPRING_SECURITY_CONTEXT"
+                );
+
+                if (securityContextObj instanceof SecurityContext securityContext) {
+                    Authentication auth = securityContext.getAuthentication();
+
+                    // 3. 현재 세션이 삭제된 유저의 세션인지 확인
+                    if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+                        if (userDetails.getUserId().equals(userId)) {
+                            // 4. 해당 세션 관련 모든 데이터 삭제
+                            redisTemplate.delete(sessionKey);
+                            // 연관된 인덱스도 삭제
+                            String indexKey = "spring:session:index:" + sessionKey;
+                            redisTemplate.delete(indexKey);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user sessions", e);
+        }
+    }
 }

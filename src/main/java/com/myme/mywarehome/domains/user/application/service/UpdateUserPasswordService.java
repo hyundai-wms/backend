@@ -4,6 +4,7 @@ import com.myme.mywarehome.domains.user.adapter.out.exception.InvalidCurrentPass
 import com.myme.mywarehome.domains.user.application.domain.User;
 import com.myme.mywarehome.domains.user.application.exception.UserNotFoundException;
 import com.myme.mywarehome.domains.user.application.port.in.UpdateUserPasswordUseCase;
+import com.myme.mywarehome.domains.user.application.port.out.GetUserPort;
 import com.myme.mywarehome.domains.user.application.port.out.UpdateUserPort;
 import com.myme.mywarehome.infrastructure.util.security.SecurityUtil;
 import jakarta.transaction.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UpdateUserPasswordService implements UpdateUserPasswordUseCase {
+    private final GetUserPort getUserPort;
     private final UpdateUserPort updateUserPort;
     private final PasswordEncoder passwordEncoder;
 
@@ -24,11 +26,11 @@ public class UpdateUserPasswordService implements UpdateUserPasswordUseCase {
     public void updatePassword(String oldPassword, String newPassword) {
         Long userId = SecurityUtil.getCurrentUserId();
 
-        User user = updateUserPort.findUserByUserId(userId)
+        User user = getUserPort.findUserByUserId(userId)
                 .orElseThrow(UserNotFoundException::new);
 
         // 기존 비밀번호 유효성 검사
-        if(!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new InvalidCurrentPasswordException();
         }
 

@@ -6,6 +6,8 @@ import com.myme.mywarehome.domains.user.application.dto.out.CreatedUserInfoResul
 import com.myme.mywarehome.domains.user.application.exception.UserDuplicateException;
 import com.myme.mywarehome.domains.user.application.port.in.CreateUserUseCase;
 import com.myme.mywarehome.domains.user.application.port.out.CreateUserPort;
+import com.myme.mywarehome.domains.user.application.port.out.GetUserPort;
+import com.myme.mywarehome.domains.user.application.port.out.UpdateUserPort;
 import com.myme.mywarehome.infrastructure.util.security.SecurityUtil;
 import com.myme.mywarehome.infrastructure.util.security.session.SessionService;
 import jakarta.transaction.Transactional;
@@ -19,6 +21,8 @@ import static com.myme.mywarehome.infrastructure.util.helper.StringHelper.genera
 @RequiredArgsConstructor
 public class CreateUserService implements CreateUserUseCase {
     private final CreateUserPort createUserPort;
+    private final GetUserPort getUserPort;
+    private final UpdateUserPort updateUserPort;
     private final PasswordEncoder passwordEncoder;
     private final SessionService sessionService;
 
@@ -26,8 +30,8 @@ public class CreateUserService implements CreateUserUseCase {
     @Transactional
     public CreatedUserInfoResult create(User user) {
         // ID, PhoneNumber 중복 여부 검사
-        boolean isIdDuplicated = createUserPort.existsUserById(user.getId());
-        boolean isPhoneNumberDuplicated = createUserPort.existsUserByPhoneNumber(user.getPhoneNumber());
+        boolean isIdDuplicated = getUserPort.existsUserById(user.getId());
+        boolean isPhoneNumberDuplicated = getUserPort.existsUserByPhoneNumber(user.getPhoneNumber());
 
         if(isIdDuplicated && isPhoneNumberDuplicated) {
             throw new UserDuplicateException(user.getId(), user.getPhoneNumber());
@@ -44,7 +48,7 @@ public class CreateUserService implements CreateUserUseCase {
         // 만약 새로운 유저에 ADMIN role을 부여한다면, 본인은 Middle Manager로 강등되어야 함.
         if(user.getRole().equals(Role.ROLE_ADMIN)) {
             Long userId = SecurityUtil.getCurrentUserId();
-            createUserPort.updateUserRoleToMiddleManager(userId);
+            updateUserPort.updateUserRoleToMiddleManager(userId);
             // 세션 업데이트
             sessionService.updateUserSessionRole(
                     userId,

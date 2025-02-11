@@ -6,14 +6,13 @@ import com.myme.mywarehome.domains.user.adapter.in.web.response.CreateUserRespon
 import com.myme.mywarehome.domains.user.adapter.in.web.response.UserInfoResponse;
 import com.myme.mywarehome.domains.user.application.dto.in.UpdateUserRoleCommand;
 import com.myme.mywarehome.domains.user.application.port.in.CreateUserUseCase;
+import com.myme.mywarehome.domains.user.application.port.in.DeleteUserUseCase;
 import com.myme.mywarehome.domains.user.application.port.in.GetUserUseCase;
 import com.myme.mywarehome.domains.user.application.port.in.UpdateUserRoleUseCase;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v1/users")
@@ -22,6 +21,7 @@ public class UserController {
     private final GetUserUseCase getUserUseCase;
     private final CreateUserUseCase createUserUseCase;
     private final UpdateUserRoleUseCase updateUserRoleUseCase;
+    private final DeleteUserUseCase deleteUserUseCase;
 
     @GetMapping("/me")
     public CommonResponse<UserInfoResponse> getCurrentUser(){
@@ -42,5 +42,11 @@ public class UserController {
         return CommonResponse.from(
                 UserInfoResponse.of(updateUserRoleUseCase.updateRole(UpdateUserRoleCommand.of(userId, updateUserRoleRequest.role())))
         );
+    }
+
+    @DeleteMapping("/{userId}")
+    public CommonResponse<Void> delete(@PathVariable("userId") Long userId) {
+        deleteUserUseCase.deleteUser(userId);
+        return CommonResponse.empty();
     }
 }
