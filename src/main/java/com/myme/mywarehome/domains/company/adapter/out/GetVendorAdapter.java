@@ -1,8 +1,8 @@
-package com.myme.mywarehome.domains.companies.adapter.out;
+package com.myme.mywarehome.domains.company.adapter.out;
 
-import com.myme.mywarehome.domains.companies.adapter.out.persistence.CompanyJpaRepository;
-import com.myme.mywarehome.domains.companies.application.domain.Company;
-import com.myme.mywarehome.domains.companies.application.port.out.GetVendorPort;
+import com.myme.mywarehome.domains.company.adapter.out.persistence.CompanyJpaRepository;
+import com.myme.mywarehome.domains.company.application.domain.Company;
+import com.myme.mywarehome.domains.company.application.port.out.GetVendorPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,8 +1,8 @@
-package com.myme.mywarehome.domains.companies.application.service;
+package com.myme.mywarehome.domains.company.application.service;
 
-import com.myme.mywarehome.domains.companies.application.domain.Company;
-import com.myme.mywarehome.domains.companies.application.port.in.GetVendorUseCase;
-import com.myme.mywarehome.domains.companies.application.port.out.GetVendorPort;
+import com.myme.mywarehome.domains.company.application.domain.Company;
+import com.myme.mywarehome.domains.company.application.port.in.GetVendorUseCase;
+import com.myme.mywarehome.domains.company.application.port.out.GetVendorPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

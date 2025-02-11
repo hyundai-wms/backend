@@ -1,4 +1,4 @@
-package com.myme.mywarehome.domains.companies.application.domain;
+package com.myme.mywarehome.domains.company.application.domain;
 
 import com.myme.mywarehome.domains.product.application.domain.Product;
 import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;

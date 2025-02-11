@@ -1,4 +1,4 @@
-package com.myme.mywarehome.domains.companies.adapter.in.web.request;
+package com.myme.mywarehome.domains.company.adapter.in.web.request;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

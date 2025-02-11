@@ -1,6 +1,6 @@
-package com.myme.mywarehome.domains.companies.adapter.in.web.response;
+package com.myme.mywarehome.domains.company.adapter.in.web.response;
 
-import com.myme.mywarehome.domains.companies.application.domain.Company;
+import com.myme.mywarehome.domains.company.application.domain.Company;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
