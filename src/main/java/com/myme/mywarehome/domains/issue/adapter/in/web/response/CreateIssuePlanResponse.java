@@ -4,6 +4,7 @@ import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 
 import java.time.LocalDateTime;
 
+// Todo: itemCount, companyId, companyCode, companyName 추가
 public record CreateIssuePlanResponse(
         Long issuePlanId,
         String issuePlanCode,
