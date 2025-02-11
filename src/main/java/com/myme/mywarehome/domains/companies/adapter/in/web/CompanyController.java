@@ -19,7 +19,8 @@ public class CompanyController {
     @GetMapping("/vendors")
     public CommonResponse<GetVendorResponse> getVendors(@Valid GetVendorRequest getVendorRequest) {
         return CommonResponse.from(
-                GetVendorResponse.of(getVendorUseCase.getVendors(getVendorRequest.toPageable()))
+                GetVendorResponse.of(getVendorUseCase.getVendors(getVendorRequest.companyCode(),
+                        getVendorRequest.companyName(),getVendorRequest.toPageable()))
         );
     }
 

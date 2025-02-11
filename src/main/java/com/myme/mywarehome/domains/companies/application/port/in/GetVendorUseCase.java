@@ -5,5 +5,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface GetVendorUseCase {
-    Page<Company> getVendors(Pageable pageable);
+    Page<Company> getVendors(String companyCode, String companyName, Pageable pageable);
 }
