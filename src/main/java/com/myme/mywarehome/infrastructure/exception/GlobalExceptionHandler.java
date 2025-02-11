@@ -23,7 +23,15 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
         log.error("handleBusinessException", e);
         ErrorCode errorCode = e.getErrorCode();
-        ErrorResponse response = ErrorResponse.of(errorCode);
+        List<ErrorResponse.FieldError> fieldErrors = e.getReason();
+
+        ErrorResponse response;
+        if (fieldErrors == null || fieldErrors.isEmpty()) {
+            response = ErrorResponse.of(errorCode);
+        } else {
+            response = ErrorResponse.of(errorCode, fieldErrors);
+        }
+
         return new ResponseEntity<>(response, HttpStatus.valueOf(errorCode.getStatus()));
     }
 

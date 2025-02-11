@@ -1,7 +1,7 @@
 package com.myme.mywarehome.infrastructure.util.security;
 
 import com.myme.mywarehome.domains.user.application.domain.Role;
-import com.myme.mywarehome.domains.user.application.domain.exception.UnauthorizedException;
+import com.myme.mywarehome.domains.user.application.exception.UnauthorizedException;
 import com.myme.mywarehome.infrastructure.config.security.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -73,4 +73,5 @@ public class SecurityUtil {
     public static boolean hasRole(Role role) {
         return getCurrentUserRoles().contains(role);
     }
+
 }

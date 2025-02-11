@@ -1,7 +1,7 @@
 package com.myme.mywarehome.infrastructure.config.security;
 
 import com.myme.mywarehome.domains.user.application.domain.User;
-import com.myme.mywarehome.domains.user.application.domain.exception.UserNotFoundException;
+import com.myme.mywarehome.domains.user.application.exception.UserNotFoundException;
 import com.myme.mywarehome.domains.user.application.port.out.GetUserPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
