@@ -10,13 +10,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class GetVendorService implements GetVendorUseCase {
     private final GetVendorPort getVendorPort;
 
     @Override
-    public Page<Company> getVendors(String companyCode, String companyName, Pageable pageable) {
-        return getVendorPort.findVendors(companyCode, companyName, pageable);
+    public Page<Company> getSpecificVendors(Long companyId, Pageable pageable) {
+        return getVendorPort.findVendorByCompanyId(companyId, pageable);
     }
 }

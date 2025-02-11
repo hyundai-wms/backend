@@ -4,7 +4,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-public record GetVendorRequest(
+public record GetAllVendorRequest(
         Integer page,
         Integer size,
         String sort,

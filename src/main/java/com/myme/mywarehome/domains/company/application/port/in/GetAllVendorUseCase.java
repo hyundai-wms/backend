@@ -4,6 +4,6 @@ import com.myme.mywarehome.domains.company.application.domain.Company;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-public interface GetVendorUseCase {
-    Page<Company> getSpecificVendors(Long companyId, Pageable pageable);
+public interface GetAllVendorUseCase {
+    Page<Company> getAllVendors(String companyCode, String companyName, Pageable pageable);
 }

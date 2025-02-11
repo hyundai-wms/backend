@@ -19,6 +19,12 @@ public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
             @Param("name") String name,
             Pageable pageable
     );
+
+    @Query("SELECT c FROM Company c WHERE c.companyId = :companyId AND c.isVendor = true")
+    Page<Company> findVendorByCompanyId(
+            @Param("companyId") Long companyId,
+            Pageable pageable
+    );
 }
 
 
