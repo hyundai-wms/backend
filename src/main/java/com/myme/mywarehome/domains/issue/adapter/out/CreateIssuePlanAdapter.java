@@ -17,7 +17,7 @@ public class CreateIssuePlanAdapter implements CreateIssuePlanPort {
     public IssuePlan create(IssuePlan issuePlan) { return issuePlanJpaRepository.save(issuePlan); }
 
     @Override
-    public List<IssuePlan> createBulk(List<IssuePlan> issuePlans) {
-        return issuePlanJpaRepository.saveAll(issuePlans);
+    public List<IssuePlan> createBulk(List<IssuePlan> issuePlanList) {
+        return issuePlanJpaRepository.saveAll(issuePlanList);
     }
 }
