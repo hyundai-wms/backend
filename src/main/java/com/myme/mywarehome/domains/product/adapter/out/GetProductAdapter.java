@@ -1,0 +1,21 @@
+package com.myme.mywarehome.domains.product.adapter.out;
+
+import com.myme.mywarehome.domains.product.adapter.out.persistence.ProductJpaRepository;
+import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.domains.product.application.port.out.GetProductPort;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class GetProductAdapter implements GetProductPort {
+    private final ProductJpaRepository productJpaRepository;
+
+
+    @Override
+    public Page<Product> readAll(Pageable pageable) {
+        return productJpaRepository.findAll(pageable);
+    }
+}
