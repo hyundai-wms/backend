@@ -42,5 +42,14 @@ public class IssuePlan extends BaseTimeEntity {
         this.issuePlanCode = issuePlanCode;
     }
 
+    public void updateIssuePlan(Product product, String issuePlanDate) {
+        if (product != null) {
+            this.product = product;
+        }
+        if (issuePlanDate != null) {
+            this.issuePlanDate = issuePlanDate;
+        }
+    }
+
 
 }
