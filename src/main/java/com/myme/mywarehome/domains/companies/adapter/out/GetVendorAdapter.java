@@ -14,5 +14,5 @@ public class GetVendorAdapter implements GetVendorPort {
     private final CompanyJpaRepository companyJpaRepository;
 
     @Override
-    public Page<Company> getVendors(Pageable pageable) {return companyJpaRepository.findAll(pageable);}
+    public Page<Company> findVendors(Pageable pageable) {return companyJpaRepository.findByIsVendorTrue(pageable);}
 }

@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
 
+    Page<Company> findByIsVendorTrue(Pageable pageable);
 }

@@ -5,5 +5,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface GetVendorPort {
-    Page<Company> getVendors(Pageable pageable);
+    Page<Company> findVendors(Pageable pageable);
 }
