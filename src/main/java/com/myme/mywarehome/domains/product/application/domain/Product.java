@@ -21,7 +21,9 @@ public class Product extends BaseTimeEntity {
     @JoinColumn(name = "company_id")
     private Company company;
 
+    @Column(unique = true, nullable = false)
     private String productNumber;
+
     private String productName;
     private Integer eachCount;
     private Integer safeItemCount;
