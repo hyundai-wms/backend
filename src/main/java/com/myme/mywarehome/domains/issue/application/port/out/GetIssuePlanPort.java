@@ -1,11 +1,10 @@
 package com.myme.mywarehome.domains.issue.application.port.out;
 
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
-
 import java.util.Optional;
 
-public interface UpdateIssuePlanPort {
-    Optional<IssuePlan> update(IssuePlan issuePlan);
-    // Optional<IssuePlan> findById(Long id);
+public interface GetIssuePlanPort {
+    Optional<IssuePlan> getIssuePlanById(Long issuePlanId);
+    boolean existsIssuePlanById(Long issuePlanId);
 
 }

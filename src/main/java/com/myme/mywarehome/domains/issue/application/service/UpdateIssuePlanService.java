@@ -4,10 +4,13 @@ import com.myme.mywarehome.domains.issue.adapter.out.exception.IssuePlanExceedSt
 import com.myme.mywarehome.domains.issue.adapter.out.exception.IssuePlanNotFoundException;
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.issue.application.port.in.UpdateIssuePlanUseCase;
+import com.myme.mywarehome.domains.issue.application.port.in.command.IssuePlanCommand;
+import com.myme.mywarehome.domains.issue.application.port.out.GetIssuePlanPort;
 import com.myme.mywarehome.domains.issue.application.port.out.UpdateIssuePlanPort;
 import com.myme.mywarehome.domains.product.application.domain.Product;
 import com.myme.mywarehome.domains.product.application.exception.ProductNotFoundException;
 import com.myme.mywarehome.domains.product.application.port.out.GetProductPort;
+import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPlanPort;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
@@ -19,35 +22,31 @@ import org.springframework.stereotype.Service;
 public class UpdateIssuePlanService implements UpdateIssuePlanUseCase {
     private final UpdateIssuePlanPort updateIssuePlanPort;
     private final GetProductPort getProductPort;
+    private final GetIssuePlanPort getIssuePlanPort;
 
     @Override
     @Transactional
-    public IssuePlan update(IssuePlan issuePlan) {
-        // 1. 기존 출고 예정 정보 조회
-        IssuePlan existingIssuePlan = updateIssuePlanPort.findById(issuePlan.getIssuePlanId())
-                .orElseThrow(IssuePlanNotFoundException::new);
+    public IssuePlan update(Long issuePlanId, IssuePlanCommand issuePlanCommand) {
+        IssuePlan issuePlan = getIssuePlanPort.getIssuePlanById(issuePlanId).orElseThrow(EntityNotFoundException::new);
 
-        // 2. 상품 정보 조회 및 검증
-        Product product = null;
-        if (issuePlan.getProduct() != null && issuePlan.getProduct().getProductNumber() != null) {
-            product = getProductPort.findByProductNumber(issuePlan.getProduct().getProductNumber())
+        // P/N 수정
+        if(issuePlanCommand.productNumber() != null) {
+            Product newProduct = getProductPort.findByProductNumber(issuePlanCommand.productNumber())
                     .orElseThrow(ProductNotFoundException::new);
 
-            // 2-1. 상품 재고 검증
-            if (issuePlan.getIssuePlanItemCount() != null &&
-                    product.getEachCount() < issuePlan.getIssuePlanItemCount()) {
-                throw new IssuePlanExceedStockException();
-            }
+            issuePlan.connectWithProduct(newProduct);
         }
 
+        // 재고 수정
+        if (issuePlanCommand.itemCount() != null) {
+            issuePlan.changeIssuePlanItemCount(issuePlanCommand.itemCount());
+        }
 
-        existingIssuePlan.updateIssuePlan(
-                product,
-                issuePlan.getIssuePlanDate(),
-                issuePlan.getIssuePlanItemCount()
-        );
+        if (issuePlanCommand.issuePlanDate() != null) {
+            issuePlan.changeIssuePlanDate(issuePlanCommand.issuePlanDate());
+        }
 
-        return updateIssuePlanPort.update(existingIssuePlan);
+        return updateIssuePlanPort.update(issuePlan).orElseThrow(IssuePlanNotFoundException::new);
 
     }
 }
