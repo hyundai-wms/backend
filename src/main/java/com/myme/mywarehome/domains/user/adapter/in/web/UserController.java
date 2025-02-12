@@ -32,7 +32,7 @@ public class UserController {
 
     @GetMapping
     public CommonResponse<GetAllUserResponse> getAllUsers(
-            GetAllUserRequest getAllUserRequest,
+            @Valid GetAllUserRequest getAllUserRequest,
             @PageableDefault(size = 10, sort = "userId", direction = Direction.ASC) Pageable pageable
     ) {
         return CommonResponse.from(
