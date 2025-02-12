@@ -2,6 +2,7 @@ package com.myme.mywarehome.domains.issue.adapter.in.web.request;
 
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -26,7 +27,7 @@ public record CreateIssuePlanRequest(
         return IssuePlan.builder()
                 .product(product)
                 .issuePlanItemCount(this.itemCount)
-                .issuePlanDate(LocalDate.parse(this.issuePlanDate))
+                .issuePlanDate(DateFormatHelper.parseDate(this.issuePlanDate))
                 .build();
     }
 }
