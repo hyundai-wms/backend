@@ -27,7 +27,7 @@ public class ReceiptPlan extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long receiptPlanId;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String receiptPlanCode;
 
     private Integer receiptPlanItemCount;
