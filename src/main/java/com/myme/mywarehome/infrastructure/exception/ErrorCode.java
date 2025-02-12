@@ -13,6 +13,7 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(405, "C004", "HTTP 메소드가 유효하지 않습니다."),
     ROUTE_NOT_FOUND(404, "C005", "요청 경로를 찾을 수 없습니다."),
     ILLEGAL_ARGUMENT(400, "C006", "내부 파라미터가 유효하지 않습니다."),
+    INVALID_DATE_FORMAT(400, "C007", "존재하지 않는 날짜이거나, 날짜 형식이 유효하지 않습니다."),
     INTERNAL_SERVER_ERROR(500, "C100", "서버 에러."),
 
     // User
@@ -31,6 +32,10 @@ public enum ErrorCode {
 
     // Product
     PRODUCT_NOT_FOUND(404, "P001", "해당 물품이 존재하지 않습니다."),
+
+    // Receipt
+    RECEIPT_PLAN_NOT_FOUND(404, "R001", "해당 입고 예정 정보가 존재하지 않습니다."),
+    RECEIPT_NOT_FOUND(404, "R002", "해당 입고 정보가 존재하지 않습니다."),
     ;
 
     private final int status;

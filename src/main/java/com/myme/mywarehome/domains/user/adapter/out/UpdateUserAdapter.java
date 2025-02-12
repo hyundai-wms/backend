@@ -32,7 +32,7 @@ public class UpdateUserAdapter implements UpdateUserPort {
         if(user.getUserId() != null){
             return Optional.of(userJpaRepository.save(user));
         } else {
-            log.error("User Not Changed : User not found when changing user");
+            log.error("User Not Changed : User Id is null");
             return Optional.empty();
         }
     }

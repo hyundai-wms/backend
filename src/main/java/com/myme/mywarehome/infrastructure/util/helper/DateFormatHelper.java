@@ -1,16 +1,24 @@
 package com.myme.mywarehome.infrastructure.util.helper;
 
+import com.myme.mywarehome.infrastructure.util.helper.exception.InvalidDateFormatException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class DateFormatHelper {
-    public static final String DATE_FORMAT = "yyyy-MM-dd";
-
     public static String formatDate(LocalDate date) {
-        return date.format(DateTimeFormatter.ofPattern(DATE_FORMAT));
+        try {
+            return date.toString();
+        } catch (DateTimeParseException e) {
+            throw new InvalidDateFormatException();
+        }
     }
 
     public static LocalDate parseDate(String date) {
-        return LocalDate.parse(date, DateTimeFormatter.ofPattern(DATE_FORMAT));
+        try {
+            return LocalDate.parse(date);
+        } catch (DateTimeParseException e) {
+            throw new InvalidDateFormatException();
+        }
     }
 }
