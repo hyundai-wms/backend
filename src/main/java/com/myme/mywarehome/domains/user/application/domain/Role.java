@@ -19,6 +19,6 @@ public enum Role {
         return Arrays.stream(Role.values())
                 .filter(r -> r.getRoleName().equals(role))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid role: " + role));
+                .orElseThrow(() -> new IllegalArgumentException("역할 이름이 잘못되었습니다: " + role));
     }
 }
