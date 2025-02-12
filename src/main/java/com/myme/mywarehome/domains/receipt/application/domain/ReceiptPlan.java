@@ -3,6 +3,7 @@ package com.myme.mywarehome.domains.receipt.application.domain;
 import com.myme.mywarehome.domains.product.application.domain.Product;
 import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;
 import com.myme.mywarehome.infrastructure.util.helper.StringHelper.CodeGenerator;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -26,6 +27,7 @@ public class ReceiptPlan extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long receiptPlanId;
 
+    @Column(unique = true)
     private String receiptPlanCode;
 
     private Integer receiptPlanItemCount;

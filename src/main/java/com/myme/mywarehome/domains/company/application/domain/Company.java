@@ -20,7 +20,10 @@ public class Company extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="company_id")
     private Long companyId;
+
+    @Column(unique = true, nullable = false)
     private String companyCode;
+
     private String companyName;
     private String companyFax;
     private String companyPhone;
