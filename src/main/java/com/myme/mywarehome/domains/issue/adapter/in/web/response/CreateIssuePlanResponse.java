@@ -2,6 +2,7 @@ package com.myme.mywarehome.domains.issue.adapter.in.web.response;
 
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 // Todo: itemCount, companyId, companyCode, companyName 추가
@@ -11,9 +12,10 @@ public record CreateIssuePlanResponse(
         String issuePlanDate,
         String productNumber,
         String productName,
-//        Integer itemCount,
-//        String companyCode,
-//        String companyName,
+        Integer itemCount,
+        Long companyId,
+        String companyCode,
+        String companyName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 
@@ -22,9 +24,13 @@ public record CreateIssuePlanResponse(
         return new CreateIssuePlanResponse(
                 issuePlan.getIssuePlanId(),
                 issuePlan.getIssuePlanCode(),
-                issuePlan.getIssuePlanDate(),
+                issuePlan.getIssuePlanDate().toString(),
                 issuePlan.getProduct().getProductNumber(),  // Product에서 가져옴
                 issuePlan.getProduct().getProductName(),    // Product
+                issuePlan.getIssuePlanItemCount(),
+                issuePlan.getProduct().getCompany().getCompanyId(),
+                issuePlan.getProduct().getCompany().getCompanyCode(),
+                issuePlan.getProduct().getCompany().getCompanyName(),
                 issuePlan.getCreatedAt(),
                 issuePlan.getUpdatedAt()
         );

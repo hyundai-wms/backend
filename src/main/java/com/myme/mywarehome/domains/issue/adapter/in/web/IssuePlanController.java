@@ -9,6 +9,7 @@ import com.myme.mywarehome.domains.issue.application.port.in.CreateIssuePlanUseC
 import com.myme.mywarehome.domains.issue.application.port.in.UpdateIssuePlanUseCase;
 import com.myme.mywarehome.domains.product.adapter.out.persistence.ProductJpaRepository;
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.domains.product.application.exception.ProductNotFoundException;
 import com.myme.mywarehome.domains.product.application.port.out.GetProductPort;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,7 +32,7 @@ public class IssuePlanController {
     @PostMapping
     public CommonResponse<CreateIssuePlanResponse> create(@Valid @RequestBody CreateIssuePlanRequest createIssuePlanRequest) {
         Product product = productJpaRepository.findByProductNumber(createIssuePlanRequest.productNumber())
-                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+                .orElseThrow(ProductNotFoundException::new);
 
         return CommonResponse.from(
                 CreateIssuePlanResponse.of(
@@ -47,7 +48,7 @@ public class IssuePlanController {
         List<IssuePlan> issuePlanList = requests.stream()
                 .map(request -> {
                     Product product = productJpaRepository.findByProductNumber(request.productNumber())
-                            .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+                            .orElseThrow((ProductNotFoundException::new));
                     return request.toEntity(product);
                 })
                 .collect(Collectors.toList());
@@ -67,7 +68,7 @@ public class IssuePlanController {
             @Valid @RequestBody UpdateIssuePlanRequest updateIssuePlanRequest) {
 
         Product product = getProductPort.findByProductNumber(updateIssuePlanRequest.productNumber())
-                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+                .orElseThrow((ProductNotFoundException::new));
 
         return CommonResponse.from(
                 UpdateIssuePlanResponse.of(

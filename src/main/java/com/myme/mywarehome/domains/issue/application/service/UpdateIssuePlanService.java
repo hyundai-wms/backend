@@ -4,9 +4,11 @@ import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.issue.application.port.in.UpdateIssuePlanUseCase;
 import com.myme.mywarehome.domains.issue.application.port.out.UpdateIssuePlanPort;
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.domains.product.application.exception.ProductNotFoundException;
 import com.myme.mywarehome.domains.product.application.port.out.GetProductPort;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +21,28 @@ public class UpdateIssuePlanService implements UpdateIssuePlanUseCase {
     @Override
     @Transactional
     public IssuePlan update(IssuePlan issuePlan) {
+        // 1. 기존 출고 예정 정보 조회
         IssuePlan existingIssuePlan = updateIssuePlanPort.findById(issuePlan.getIssuePlanId())
                 .orElseThrow(() -> new EntityNotFoundException("출고 예정 정보를 찾을 수 없습니다."));
 
-        Product product = getProductPort.findByProductNumber(issuePlan.getProduct().getProductNumber())
-                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
+        // 2. 상품 정보 조회 및 검증
+        Product product = null;
+        if (issuePlan.getProduct() != null && issuePlan.getProduct().getProductNumber() != null) {
+            product = getProductPort.findByProductNumber(issuePlan.getProduct().getProductNumber())
+                    .orElseThrow(ProductNotFoundException::new);
+
+            // 2-1. 상품 재고 검증
+            if (issuePlan.getIssuePlanItemCount() != null &&
+                    product.getEachCount() < issuePlan.getIssuePlanItemCount()) {
+                throw new IllegalStateException("출고 예정 수량이 현재 재고량보다 많습니다.");
+            }
+        }
+
 
         existingIssuePlan.updateIssuePlan(
                 product,
-                issuePlan.getIssuePlanDate()
+                issuePlan.getIssuePlanDate(),
+                issuePlan.getIssuePlanItemCount()
         );
 
         return updateIssuePlanPort.update(existingIssuePlan);
