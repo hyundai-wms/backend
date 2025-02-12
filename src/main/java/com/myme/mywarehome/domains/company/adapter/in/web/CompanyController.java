@@ -1,9 +1,12 @@
 package com.myme.mywarehome.domains.company.adapter.in.web;
 
 import com.myme.mywarehome.domains.company.adapter.in.web.request.GetAllVendorRequest;
+import com.myme.mywarehome.domains.company.adapter.in.web.request.GetInhouseRequest;
 import com.myme.mywarehome.domains.company.adapter.in.web.response.GetAllVendorResponse;
+import com.myme.mywarehome.domains.company.adapter.in.web.response.GetInhouseResponse;
 import com.myme.mywarehome.domains.company.adapter.in.web.response.GetVendorResponse;
 import com.myme.mywarehome.domains.company.application.port.in.GetAllVendorUseCase;
+import com.myme.mywarehome.domains.company.application.port.in.GetInhouseUseCase;
 import com.myme.mywarehome.domains.company.application.port.in.GetVendorUseCase;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CompanyController {
     private final GetAllVendorUseCase getAllVendorUseCase;
     private final GetVendorUseCase getVendorUseCase;
+    private final GetInhouseUseCase getInhouseUseCase;
 
     @GetMapping("/vendors")
     public CommonResponse<GetAllVendorResponse> getAllVendors(@Valid GetAllVendorRequest getAllVendorRequest) {
@@ -39,6 +43,17 @@ public class CompanyController {
         );
     }
 
+    @GetMapping("/inhouse")
+    public CommonResponse<GetInhouseResponse> getInhouse(@Valid GetInhouseRequest request,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return CommonResponse.from(
+                GetInhouseResponse.from(getInhouseUseCase.getInhouses(
+                        request.productNumber(),
+                        request.productName(),
+                        request.applicableEngine(),
+                        pageable))
+        );
+    }
 
 
 

@@ -25,6 +25,25 @@ public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
             @Param("companyId") Long companyId,
             Pageable pageable
     );
+
+    @Query("SELECT DISTINCT c FROM Company c JOIN FETCH c.productList p " +
+            "WHERE c.isVendor = false " +
+            "AND (" +
+            "   CASE WHEN (COALESCE(:productNumber, '') != '' OR COALESCE(:productName, '') != '') "
+            +
+            "   THEN (" +
+            "       (COALESCE(:productNumber, '') != '' AND p.productNumber LIKE CONCAT('%', :productNumber, '%')) " +
+            "       OR (COALESCE(:productName, '') != '' AND p.productName LIKE CONCAT('%', :productName, '%')) " +
+            "   ) " +
+            "   ELSE true END" +
+            ") " +
+            "AND (COALESCE(:applicableEngine, '') = '' OR p.applicableEngine LIKE CONCAT('%', :applicableEngine, '%'))")
+    Page<Company> findInhouseByConditions(
+            @Param("productNumber") String productNumber,
+            @Param("productName") String productName,
+            @Param("applicableEngine") String applicableEngine,
+            Pageable pageable
+    );
 }
 
 
