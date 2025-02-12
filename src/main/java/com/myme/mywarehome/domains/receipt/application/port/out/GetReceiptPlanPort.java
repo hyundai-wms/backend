@@ -5,4 +5,5 @@ import java.util.Optional;
 
 public interface GetReceiptPlanPort {
     Optional<ReceiptPlan> getReceiptPlanById(Long receiptPlanId);
+    boolean existsReceiptPlanById(Long receiptPlanId);
 }
