@@ -36,7 +36,14 @@ public enum ErrorCode {
     // Receipt
     RECEIPT_PLAN_NOT_FOUND(404, "R001", "해당 입고 예정 정보가 존재하지 않습니다."),
     RECEIPT_NOT_FOUND(404, "R002", "해당 입고 정보가 존재하지 않습니다."),
+
+    // Issue
+    ISSUE_PLAN_NOT_FOUND(404, "I001", "출고 예정 정보를 찾을 수 없습니다."),
+    ISSUE_PLAN_EXCEED_STOCK(404, "I002", "출고 예정 수량이 현재 재고량보다 많습니다."),
     ;
+
+
+
 
     private final int status;
     private final String code;
