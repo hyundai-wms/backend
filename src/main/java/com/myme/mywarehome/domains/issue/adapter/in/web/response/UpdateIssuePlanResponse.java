@@ -2,6 +2,7 @@ package com.myme.mywarehome.domains.issue.adapter.in.web.response;
 
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 
+import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import java.time.LocalDateTime;
 // Todo: itemCount, companyId, companyCode, companyName 추가
 public record UpdateIssuePlanResponse(
@@ -22,7 +23,7 @@ public record UpdateIssuePlanResponse(
         return new UpdateIssuePlanResponse(
                 issuePlan.getIssuePlanId(),
                 issuePlan.getIssuePlanCode(),
-                issuePlan.getIssuePlanDate().toString(),
+                DateFormatHelper.formatDate(issuePlan.getIssuePlanDate()),
                 issuePlan.getProduct().getProductNumber(),
                 issuePlan.getProduct().getProductName(),
                 issuePlan.getIssuePlanItemCount(),

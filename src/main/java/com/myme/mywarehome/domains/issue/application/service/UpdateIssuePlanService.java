@@ -1,5 +1,7 @@
 package com.myme.mywarehome.domains.issue.application.service;
 
+import com.myme.mywarehome.domains.issue.adapter.out.exception.IssuePlanExceedStockException;
+import com.myme.mywarehome.domains.issue.adapter.out.exception.IssuePlanNotFoundException;
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.issue.application.port.in.UpdateIssuePlanUseCase;
 import com.myme.mywarehome.domains.issue.application.port.out.UpdateIssuePlanPort;
@@ -23,7 +25,7 @@ public class UpdateIssuePlanService implements UpdateIssuePlanUseCase {
     public IssuePlan update(IssuePlan issuePlan) {
         // 1. 기존 출고 예정 정보 조회
         IssuePlan existingIssuePlan = updateIssuePlanPort.findById(issuePlan.getIssuePlanId())
-                .orElseThrow(() -> new EntityNotFoundException("출고 예정 정보를 찾을 수 없습니다."));
+                .orElseThrow(IssuePlanNotFoundException::new);
 
         // 2. 상품 정보 조회 및 검증
         Product product = null;
@@ -34,7 +36,7 @@ public class UpdateIssuePlanService implements UpdateIssuePlanUseCase {
             // 2-1. 상품 재고 검증
             if (issuePlan.getIssuePlanItemCount() != null &&
                     product.getEachCount() < issuePlan.getIssuePlanItemCount()) {
-                throw new IllegalStateException("출고 예정 수량이 현재 재고량보다 많습니다.");
+                throw new IssuePlanExceedStockException();
             }
         }
 
