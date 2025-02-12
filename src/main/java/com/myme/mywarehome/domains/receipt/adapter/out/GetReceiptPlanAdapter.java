@@ -16,4 +16,9 @@ public class GetReceiptPlanAdapter implements GetReceiptPlanPort {
     public Optional<ReceiptPlan> getReceiptPlanById(Long receiptPlanId) {
         return receiptPlanJpaRepository.findById(receiptPlanId);
     }
+
+    @Override
+    public boolean existsReceiptPlanById(Long receiptPlanId) {
+        return receiptPlanJpaRepository.existsById(receiptPlanId);
+    }
 }

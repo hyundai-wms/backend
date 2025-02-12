@@ -5,12 +5,14 @@ import com.myme.mywarehome.domains.receipt.adapter.in.web.request.UpdateReceiptP
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptPlanResponse;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.CreateReceiptPlanUseCase;
+import com.myme.mywarehome.domains.receipt.application.port.in.DeleteReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.UpdateReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReceiptPlanController {
     private final CreateReceiptPlanUseCase createReceiptPlanUseCase;
     private final UpdateReceiptPlanUseCase updateReceiptPlanUseCase;
+    private final DeleteReceiptPlanUseCase deleteReceiptPlanUseCase;
 
     @PostMapping
     public CommonResponse<ReceiptPlanResponse> createReceiptPlan(
@@ -63,5 +66,13 @@ public class ReceiptPlanController {
                 ReceiptPlanResponse.from(updateReceiptPlanUseCase.updateReceiptPlan(receiptPlanId,
                         request.toCommand()))
         );
+    }
+
+    @DeleteMapping("/{receiptPlanId}")
+    public CommonResponse<Void> deleteReceiptPlan(
+            @PathVariable Long receiptPlanId
+    ) {
+        deleteReceiptPlanUseCase.deleteReceiptPlan(receiptPlanId);
+        return CommonResponse.empty();
     }
 }
