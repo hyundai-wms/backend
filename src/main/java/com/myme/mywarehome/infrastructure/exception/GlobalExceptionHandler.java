@@ -1,9 +1,12 @@
 package com.myme.mywarehome.infrastructure.exception;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.myme.mywarehome.infrastructure.common.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -102,7 +105,47 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    // 7. 내부 파라미터가 잘못됨
+    // 7. Request Body 누락 또는 형식 오류
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        log.error("handleHttpMessageNotReadable", e);
+
+        String errorMessage;
+        String fieldName = "requestBody";
+
+        if (e.getMessage().contains("Required request body is missing")) {
+            errorMessage = "요청 본문이 필요합니다.";
+        } else {
+            // JsonParseException, JsonMappingException 등의 상세 에러 정보 추출
+            Throwable cause = e.getCause();
+            if (cause instanceof JsonParseException jpe) {
+                fieldName = "JSON parsing error";
+                errorMessage = String.format("위치 %s에서 JSON 파싱 오류가 발생했습니다: %s",
+                        jpe.getLocation(), jpe.getOriginalMessage());
+            } else if (cause instanceof JsonMappingException jme) {
+                fieldName = jme.getPath().isEmpty() ? "Unknown" :
+                        jme.getPath().get(0).getFieldName();
+                errorMessage = String.format("필드 '%s'의 값이 잘못되었습니다: %s",
+                        fieldName, jme.getOriginalMessage());
+            } else {
+                errorMessage = "요청 본문의 형식이 잘못되었습니다.";
+            }
+        }
+
+        List<ErrorResponse.FieldError> fieldErrors = List.of(
+                new ErrorResponse.FieldError(
+                        fieldName,
+                        "",
+                        errorMessage
+                )
+        );
+
+        ErrorResponse response = ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE, fieldErrors);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+
+    // 8. 내부 파라미터가 잘못됨
     @ExceptionHandler(IllegalArgumentException.class)
     protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("handleIllegalArgumentException", e);
@@ -119,7 +162,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    // 8. 나머지 모든 예외
+    // 9. 나머지 모든 예외
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ErrorResponse> handleException(Exception e) {
 
