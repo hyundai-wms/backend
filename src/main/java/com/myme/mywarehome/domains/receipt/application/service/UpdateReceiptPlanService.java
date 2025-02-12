@@ -23,7 +23,7 @@ public class UpdateReceiptPlanService implements UpdateReceiptPlanUseCase {
     @Override
     @Transactional
     public ReceiptPlan updateReceiptPlan(Long receiptPlanId, ReceiptPlanCommand command) {
-        ReceiptPlan receiptPlan = getReceiptPlanPort.getReceiptPlanById(receiptPlanId)
+        ReceiptPlan receiptPlan = getReceiptPlanPort.findReceiptPlanById(receiptPlanId)
                 .orElseThrow(ReceiptPlanNotFoundException::new);
 
         // P/N 수정

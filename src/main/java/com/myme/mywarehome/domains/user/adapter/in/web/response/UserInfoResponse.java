@@ -13,7 +13,7 @@ public record UserInfoResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static UserInfoResponse of(User user) {
+    public static UserInfoResponse from(User user) {
         return new UserInfoResponse(
                 user.getUserId(),
                 user.getName(),

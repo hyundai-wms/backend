@@ -1,18 +1,25 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.CreateReceiptPlanRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.request.GetAllReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.UpdateReceiptPlanRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.response.GetAllReceiptPlanResponse;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptPlanResponse;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.CreateReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.DeleteReceiptPlanUseCase;
+import com.myme.mywarehome.domains.receipt.application.port.in.GetAllReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.UpdateReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,9 +31,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/storages/receipts/plans")
 @RequiredArgsConstructor
 public class ReceiptPlanController {
+    private final GetAllReceiptPlanUseCase getAllReceiptPlanUseCase;
     private final CreateReceiptPlanUseCase createReceiptPlanUseCase;
     private final UpdateReceiptPlanUseCase updateReceiptPlanUseCase;
     private final DeleteReceiptPlanUseCase deleteReceiptPlanUseCase;
+
+    @GetMapping
+    public CommonResponse<GetAllReceiptPlanResponse> getAllReceiptPlans(
+            @Valid GetAllReceiptPlanRequest request,
+            @PageableDefault(sort = "receiptPlanDate", direction = Direction.DESC) Pageable pageable
+    ) {
+        return CommonResponse.from(
+                GetAllReceiptPlanResponse.from(
+                        getAllReceiptPlanUseCase.getAllReceiptPlan(request.toCommand(), pageable)
+                )
+        );
+    }
 
     @PostMapping
     public CommonResponse<ReceiptPlanResponse> createReceiptPlan(

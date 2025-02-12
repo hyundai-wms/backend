@@ -36,7 +36,7 @@ public class UserController {
             @PageableDefault(sort = "userId", direction = Direction.ASC) Pageable pageable
     ) {
         return CommonResponse.from(
-                GetAllUserResponse.of(
+                GetAllUserResponse.from(
                         getAllUserUseCase.getAllUsers(getAllUserRequest.toCommand(), pageable))
         );
     }
@@ -44,7 +44,7 @@ public class UserController {
     @GetMapping("/me")
     public CommonResponse<UserInfoResponse> getCurrentUser(){
         return CommonResponse.from(
-                UserInfoResponse.of(getUserUseCase.getUser())
+                UserInfoResponse.from(getUserUseCase.getUser())
         );
     }
 
@@ -58,7 +58,7 @@ public class UserController {
     @PatchMapping("/{userId}/roles")
     public CommonResponse<UserInfoResponse> updateUserRoles(@PathVariable("userId") Long userId, @Valid @RequestBody UpdateUserRoleRequest updateUserRoleRequest) {
         return CommonResponse.from(
-                UserInfoResponse.of(updateUserRoleUseCase.updateRole(UpdateUserRoleCommand.of(userId, updateUserRoleRequest.role())))
+                UserInfoResponse.from(updateUserRoleUseCase.updateRole(UpdateUserRoleCommand.of(userId, updateUserRoleRequest.role())))
         );
     }
 
