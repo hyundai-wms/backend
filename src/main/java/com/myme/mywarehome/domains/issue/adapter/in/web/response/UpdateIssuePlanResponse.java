@@ -4,7 +4,7 @@ import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 
 import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import java.time.LocalDateTime;
-// Todo: itemCount, companyId, companyCode, companyName 추가
+
 public record UpdateIssuePlanResponse(
         Long issuePlanId,
         String issuePlanCode,

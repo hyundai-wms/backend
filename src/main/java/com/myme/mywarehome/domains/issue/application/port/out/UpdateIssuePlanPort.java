@@ -5,7 +5,7 @@ import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import java.util.Optional;
 
 public interface UpdateIssuePlanPort {
-    IssuePlan update(IssuePlan issuePlan);
-    Optional<IssuePlan> findById(Long id);
+    Optional<IssuePlan> update(IssuePlan issuePlan);
+    // Optional<IssuePlan> findById(Long id);
 
 }
