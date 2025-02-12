@@ -10,10 +10,10 @@ public record UpdateIssuePlanResponse(
         String issuePlanDate,
         String productNumber,
         String productName,
-        // Integer itemCount,
-        // String companyId,
-        // String companyCode,
-        // String companyName,
+        Integer itemCount,
+        Long companyId,
+        String companyCode,
+        String companyName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 
@@ -22,9 +22,13 @@ public record UpdateIssuePlanResponse(
         return new UpdateIssuePlanResponse(
                 issuePlan.getIssuePlanId(),
                 issuePlan.getIssuePlanCode(),
-                issuePlan.getIssuePlanDate(),
+                issuePlan.getIssuePlanDate().toString(),
                 issuePlan.getProduct().getProductNumber(),
                 issuePlan.getProduct().getProductName(),
+                issuePlan.getIssuePlanItemCount(),
+                issuePlan.getProduct().getCompany().getCompanyId(),
+                issuePlan.getProduct().getCompany().getCompanyCode(),
+                issuePlan.getProduct().getCompany().getCompanyName(),
                 issuePlan.getCreatedAt(),
                 issuePlan.getUpdatedAt()
         );

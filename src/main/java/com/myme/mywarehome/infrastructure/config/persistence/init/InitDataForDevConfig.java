@@ -6,6 +6,7 @@ import com.myme.mywarehome.domains.issue.adapter.out.persistence.IssuePlanJpaRep
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.product.adapter.out.persistence.ProductJpaRepository;
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -80,12 +81,18 @@ public class InitDataForDevConfig implements CommandLineRunner {
         // 출고 예정(IssuePlan) 20개 생성
         List<IssuePlan> issuePlans = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Random random = new Random();
 
         for (int i = 1; i <= 20; i++) {
+            // 1~100 사이의 랜덤한 아이템 수량
+            int randomItemCount = random.nextInt(100) + 1;
+
+            // 현재 날짜로부터 1~30일 사이의 랜덤한 날짜
+            int randomDays = random.nextInt(30) + 1;
             IssuePlan issuePlan = IssuePlan.builder()
                     .issuePlanCode("IP" + String.format("%08d", i))
-                    .issuePlanDate(now.plusDays(i).format(formatter))
+                    .issuePlanItemCount(randomItemCount)
+                    .issuePlanDate(now.plusDays(i).toLocalDate())
                     .product(products.get(i - 1))
                     .build();
             issuePlans.add(issuePlan);

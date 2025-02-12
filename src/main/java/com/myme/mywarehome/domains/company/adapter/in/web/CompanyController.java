@@ -36,7 +36,7 @@ public class CompanyController {
     }
 
     @GetMapping("/vendors/{companyId}")
-    public CommonResponse<GetVendorResponse> getVendorById(@PathVariable("companyId") Long companyId,
+    public CommonResponse<GetVendorResponse> getVendorById(@Valid @PathVariable("companyId") Long companyId,
                                                               @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable ) {
         return CommonResponse.from(
                 GetVendorResponse.from(getVendorUseCase.getSpecificVendors(companyId, pageable))
