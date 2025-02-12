@@ -13,10 +13,10 @@ public record GetAllUserResponse(
         Boolean isFirst,
         Boolean isLast
 ) {
-    public static GetAllUserResponse of(Page<User> userList) {
+    public static GetAllUserResponse from(Page<User> userList) {
         return new GetAllUserResponse(
                 userList.getContent().stream()
-                        .map(UserInfoResponse::of)
+                        .map(UserInfoResponse::from)
                         .toList(),
                 userList.getNumber(),
                 userList.getSize(),

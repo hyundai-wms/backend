@@ -20,7 +20,7 @@ public class AuthController {
     @PostMapping("/login")
     public CommonResponse<UserInfoResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         return CommonResponse.from(
-                UserInfoResponse.of(loginUseCase.login(loginRequest.id(), loginRequest.password()))
+                UserInfoResponse.from(loginUseCase.login(loginRequest.id(), loginRequest.password()))
         );
     }
 

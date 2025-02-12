@@ -12,6 +12,7 @@ public record ReceiptPlanResponse(
         Integer itemCount,
         Long companyId,
         String companyCode,
+        String companyName,
         String receiptPlanDate,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -25,6 +26,7 @@ public record ReceiptPlanResponse(
                 receiptPlan.getReceiptPlanItemCount(),
                 receiptPlan.getProduct().getCompany().getCompanyId(),
                 receiptPlan.getProduct().getCompany().getCompanyCode(),
+                receiptPlan.getProduct().getCompany().getCompanyName(),
                 DateFormatHelper.formatDate(receiptPlan.getReceiptPlanDate()),
                 receiptPlan.getCreatedAt(),
                 receiptPlan.getUpdatedAt()
