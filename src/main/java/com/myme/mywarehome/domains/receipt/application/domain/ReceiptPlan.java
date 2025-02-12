@@ -59,4 +59,16 @@ public class ReceiptPlan extends BaseTimeEntity {
         this.product = product;
     }
 
+    // 입고할 재고 수량 수정
+    public void changeReceiptPlanItemCount(Integer receiptPlanItemCount) {
+        if(receiptPlanItemCount > 0) {
+            this.receiptPlanItemCount = receiptPlanItemCount;
+        }
+    }
+
+    // 입고 예정일 수정
+    public void changeReceiptPlanDate(LocalDate receiptPlanDate) {
+        this.receiptPlanDate = receiptPlanDate;
+    }
+
 }

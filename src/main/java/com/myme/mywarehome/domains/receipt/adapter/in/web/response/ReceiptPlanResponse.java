@@ -1,6 +1,7 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web.response;
 
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
+import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import java.time.LocalDateTime;
 
 public record ReceiptPlanResponse(
@@ -24,7 +25,7 @@ public record ReceiptPlanResponse(
                 receiptPlan.getReceiptPlanItemCount(),
                 receiptPlan.getProduct().getCompany().getCompanyId(),
                 receiptPlan.getProduct().getCompany().getCompanyCode(),
-                receiptPlan.getReceiptPlanDate().toString(),
+                DateFormatHelper.formatDate(receiptPlan.getReceiptPlanDate()),
                 receiptPlan.getCreatedAt(),
                 receiptPlan.getUpdatedAt()
         );

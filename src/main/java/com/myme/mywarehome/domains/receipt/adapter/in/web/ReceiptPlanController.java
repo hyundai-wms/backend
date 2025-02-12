@@ -1,15 +1,19 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.CreateReceiptPlanRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.request.UpdateReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptPlanResponse;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.CreateReceiptPlanUseCase;
+import com.myme.mywarehome.domains.receipt.application.port.in.UpdateReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReceiptPlanController {
     private final CreateReceiptPlanUseCase createReceiptPlanUseCase;
+    private final UpdateReceiptPlanUseCase updateReceiptPlanUseCase;
 
     @PostMapping
     public CommonResponse<ReceiptPlanResponse> createReceiptPlan(
@@ -49,4 +54,14 @@ public class ReceiptPlanController {
         );
     }
 
+    @PutMapping("/{receiptPlanId}")
+    public CommonResponse<ReceiptPlanResponse> updateReceiptPlan(
+            @PathVariable Long receiptPlanId,
+            @Valid @RequestBody UpdateReceiptPlanRequest request
+    ) {
+        return CommonResponse.from(
+                ReceiptPlanResponse.from(updateReceiptPlanUseCase.updateReceiptPlan(receiptPlanId,
+                        request.toCommand()))
+        );
+    }
 }
