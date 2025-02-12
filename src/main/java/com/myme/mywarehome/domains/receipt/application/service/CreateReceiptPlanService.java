@@ -7,7 +7,6 @@ import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.CreateReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.CreateReceiptPlanCommand;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReceiptPlanPort;
-import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPlanPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
