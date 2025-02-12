@@ -1,6 +1,6 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web.request;
 
-import com.myme.mywarehome.domains.receipt.application.port.in.command.CreateReceiptPlanCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -20,8 +20,8 @@ public record CreateReceiptPlanRequest(
         @Pattern(regexp = "\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])", message = "날짜 형식이 올바르지 않습니다")
         String receiptPlanDate
 ) {
-    public CreateReceiptPlanCommand toCommand() {
-        return new CreateReceiptPlanCommand(
+    public ReceiptPlanCommand toCommand() {
+        return new ReceiptPlanCommand(
                 this.productNumber,
                 this.itemCount,
                 LocalDate.parse(this.receiptPlanDate)

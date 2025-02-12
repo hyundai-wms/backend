@@ -3,7 +3,7 @@ package com.myme.mywarehome.domains.receipt.adapter.in.web.response;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import java.time.LocalDateTime;
 
-public record CreateReceiptPlanResponse(
+public record ReceiptPlanResponse(
         Long receiptPlanId,
         String receiptPlanCode,
         String productNumber,
@@ -15,8 +15,8 @@ public record CreateReceiptPlanResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static CreateReceiptPlanResponse from(ReceiptPlan receiptPlan) {
-        return new CreateReceiptPlanResponse(
+    public static ReceiptPlanResponse from(ReceiptPlan receiptPlan) {
+        return new ReceiptPlanResponse(
                 receiptPlan.getReceiptPlanId(),
                 receiptPlan.getReceiptPlanCode(),
                 receiptPlan.getProduct().getProductNumber(),

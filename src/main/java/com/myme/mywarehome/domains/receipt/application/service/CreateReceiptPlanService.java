@@ -1,12 +1,11 @@
 package com.myme.mywarehome.domains.receipt.application.service;
 
-import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.product.application.domain.Product;
 import com.myme.mywarehome.domains.product.application.exception.ProductNotFoundException;
 import com.myme.mywarehome.domains.product.application.port.out.GetProductPort;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.CreateReceiptPlanUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.command.CreateReceiptPlanCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReceiptPlanPort;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -24,7 +23,7 @@ public class CreateReceiptPlanService implements CreateReceiptPlanUseCase {
 
     @Override
     @Transactional
-    public ReceiptPlan createReceiptPlan(CreateReceiptPlanCommand command) {
+    public ReceiptPlan createReceiptPlan(ReceiptPlanCommand command) {
 
         // 1. 기본 receiptPlan 생성
         ReceiptPlan receiptPlan = ReceiptPlan.builder()
@@ -48,10 +47,10 @@ public class CreateReceiptPlanService implements CreateReceiptPlanUseCase {
 
     @Override
     @Transactional
-    public List<ReceiptPlan> createReceiptPlanBulk(List<CreateReceiptPlanCommand> commandList) {
+    public List<ReceiptPlan> createReceiptPlanBulk(List<ReceiptPlanCommand> commandList) {
         // 1. 모든 product number 추출 및 한번에 조회
         Set<String> productNumbers = commandList.stream()
-                .map(CreateReceiptPlanCommand::productNumber)
+                .map(ReceiptPlanCommand::productNumber)
                 .collect(Collectors.toSet());
 
         Map<String, Product> productMap = getProductPort.findAllByProductNumbers(productNumbers)
