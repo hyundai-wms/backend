@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import lombok.AccessLevel;
@@ -31,10 +32,6 @@ public class Receipt extends BaseTimeEntity {
     @JoinColumn(name = "receipt_plan_id")
     private ReceiptPlan receiptPlan;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="product_id")
-    private Product product;
-
     @Column(unique = true)
     private String receiptCode;
 
@@ -44,25 +41,18 @@ public class Receipt extends BaseTimeEntity {
     private Receipt(Long receiptId, ReceiptPlan receiptPlan, Product product, String receiptCode, LocalDate receiptDate) {
         this.receiptId = receiptId;
         this.receiptPlan = receiptPlan;
-        this.product = product;
         this.receiptCode = receiptCode;
         this.receiptDate = receiptDate;
     }
 
     // 새로운 코드 부여
+    @PostPersist
     public void generateReceiptCode() {
-        if(this.receiptId != null) {
-            this.receiptCode = CodeGenerator.generateReceiptCode(this.receiptId);
-        }
+        this.receiptCode = CodeGenerator.generateReceiptCode(this.receiptId);
     }
 
     // 연결된 ReceiptPlan 설정
     public void connectWithReceiptPlan(ReceiptPlan receiptPlan) {
         this.receiptPlan = receiptPlan;
-    }
-
-    // 연결된 Product 설정
-    public void connectWithProduct(Product product) {
-        this.product = product;
     }
 }
