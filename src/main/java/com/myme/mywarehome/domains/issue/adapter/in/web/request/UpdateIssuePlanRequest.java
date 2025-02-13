@@ -23,15 +23,6 @@ public record UpdateIssuePlanRequest(
         @Pattern(regexp = "\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])", message = "날짜 형식이 올바르지 않습니다")
         String issuePlanDate
 ) {
-    public IssuePlan toEntity(Long issuePlanId, Product product) {
-        return IssuePlan.builder()
-                .issuePlanId(issuePlanId)
-                .product(product)
-                .issuePlanItemCount(this.itemCount)
-                .issuePlanDate(this.issuePlanDate == null ? null : DateFormatHelper.parseDate(this.issuePlanDate))
-                .build();
-
-    }
 
     public IssuePlanCommand toCommand() {
         return new IssuePlanCommand(

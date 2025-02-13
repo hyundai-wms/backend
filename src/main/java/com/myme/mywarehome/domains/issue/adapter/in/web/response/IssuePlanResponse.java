@@ -5,7 +5,7 @@ import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import java.time.LocalDateTime;
 
-public record UpdateIssuePlanResponse(
+public record IssuePlanResponse(
         Long issuePlanId,
         String issuePlanCode,
         String issuePlanDate,
@@ -19,8 +19,8 @@ public record UpdateIssuePlanResponse(
         LocalDateTime updatedAt
 
 ) {
-    public static UpdateIssuePlanResponse of(IssuePlan issuePlan) {
-        return new UpdateIssuePlanResponse(
+    public static IssuePlanResponse of(IssuePlan issuePlan) {
+        return new IssuePlanResponse(
                 issuePlan.getIssuePlanId(),
                 issuePlan.getIssuePlanCode(),
                 DateFormatHelper.formatDate(issuePlan.getIssuePlanDate()),
