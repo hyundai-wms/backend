@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import lombok.AccessLevel;
@@ -48,10 +49,9 @@ public class ReceiptPlan extends BaseTimeEntity {
     }
 
     // 새로운 코드 부여
-    public void generateReceiptPlanCode() {
-        if(this.receiptPlanId != null) {
-            this.receiptPlanCode = CodeGenerator.generateReceiptPlanCode(this.receiptPlanId);
-        }
+    @PostPersist
+    private void generateReceiptPlanCode() {
+        this.receiptPlanCode = CodeGenerator.generateReceiptPlanCode(this.receiptPlanId);
     }
 
     // 연결된 Product 설정

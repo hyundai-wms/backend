@@ -1,5 +1,6 @@
 package com.myme.mywarehome.infrastructure.util.helper;
 
+import com.myme.mywarehome.domains.receipt.application.exception.OutboundProductIdParseException;
 import java.security.SecureRandom;
 
 public class StringHelper {
@@ -41,6 +42,11 @@ public class StringHelper {
             return String.format("IZ" + ID_FORMAT, id);
         }
 
+        // Stock 코드 생성 (SZ + 8자리 숫자)
+        public static String generateStockCode(Long id) {
+            return String.format("SZ" + ID_FORMAT, id);
+        }
+
         // InventoryRecord 코드 생성 (IR + 8자리 숫자)
         public static String generateInventoryRecordCode(Long id) {
             return String.format("IR" + ID_FORMAT, id);
@@ -59,6 +65,24 @@ public class StringHelper {
                     prefix.equals("RZ") || prefix.equals("IZ") ||
                     prefix.equals("IR")) &&
                     number.matches("\\d{8}");  // 8자리 숫자인지 확인
+        }
+    }
+
+    // outboundProductId 로부터 receiptPlanId 추출
+    public static Long parseReceiptPlanId(String outboundProductId) {
+        try {
+            if (outboundProductId == null || outboundProductId.isEmpty()) {
+                throw new OutboundProductIdParseException();
+            }
+
+            String pattern = "^\\d+-\\d+$";
+            if (!outboundProductId.matches(pattern)) {
+                throw new OutboundProductIdParseException();
+            }
+
+            return Long.parseLong(outboundProductId.split("-")[0]);
+        } catch (NumberFormatException e) {
+            throw new OutboundProductIdParseException();
         }
     }
 }

@@ -6,6 +6,10 @@ import com.myme.mywarehome.domains.issue.adapter.out.persistence.IssuePlanJpaRep
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.product.adapter.out.persistence.ProductJpaRepository;
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.domains.stock.adapter.out.persistence.BayJpaRepository;
+import com.myme.mywarehome.domains.stock.adapter.out.persistence.BinJpaRepository;
+import com.myme.mywarehome.domains.stock.application.domain.Bay;
+import com.myme.mywarehome.domains.stock.application.domain.Bin;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -25,6 +29,8 @@ public class InitDataForDevConfig implements CommandLineRunner {
     private final CompanyJpaRepository companyJpaRepository;
     private final ProductJpaRepository productJpaRepository;
     private final IssuePlanJpaRepository issuePlanJpaRepository;
+    private final BinJpaRepository binJpaRepository;
+    private final BayJpaRepository bayJpaRepository;
 
     @Override
     @Transactional
@@ -98,5 +104,35 @@ public class InitDataForDevConfig implements CommandLineRunner {
             issuePlans.add(issuePlan);
         }
         issuePlanJpaRepository.saveAll(issuePlans);
+
+        // Bay 50개 생성 (AA01-AA10, AB01-AB10, ..., AE01-AE10)
+        List<Bay> bays = new ArrayList<>();
+        char firstLetter = 'A';
+        char secondLetter = 'A';
+
+        for (int i = 0; i < 5; i++) { // A to E
+            for (int j = 1; j <= 10; j++) { // 01 to 10
+                String bayNumber = String.format("%c%c%02d", firstLetter, (char)(secondLetter + i), j);
+                Bay bay = Bay.builder()
+                        .bayNumber(bayNumber)
+                        .product(products.get(i % products.size())) // Products를 순환하면서 할당
+                        .build();
+                bays.add(bay);
+            }
+        }
+        bayJpaRepository.saveAll(bays);
+
+        // Bin 500개 생성 (각 Bay당 10개의 Bin)
+        List<Bin> bins = new ArrayList<>();
+        for (Bay bay : bays) {
+            for (int location = 1; location <= 10; location++) {
+                Bin bin = Bin.builder()
+                        .bay(bay)
+                        .binLocation(location)
+                        .build();
+                bins.add(bin);
+            }
+        }
+        binJpaRepository.saveAll(bins);
     }
 }
