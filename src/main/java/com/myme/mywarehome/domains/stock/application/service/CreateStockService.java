@@ -3,7 +3,7 @@ package com.myme.mywarehome.domains.stock.application.service;
 import com.myme.mywarehome.domains.receipt.application.domain.Receipt;
 import com.myme.mywarehome.domains.stock.application.domain.Bin;
 import com.myme.mywarehome.domains.stock.application.domain.Stock;
-import com.myme.mywarehome.domains.stock.application.exception.NoAvailableBin;
+import com.myme.mywarehome.domains.stock.application.exception.NoAvailableBinException;
 import com.myme.mywarehome.domains.stock.application.port.in.CreateStockUseCase;
 import com.myme.mywarehome.domains.stock.application.port.out.CreateStockPort;
 import com.myme.mywarehome.domains.stock.application.port.out.GetBinPort;
@@ -31,8 +31,8 @@ public class CreateStockService implements CreateStockUseCase {
         // todo : 적치 전략 알고리즘 설계
         // 현재는 bayNumber 오름차순으로 빈 bin을 가져옴.
         // 3. 적치 전략에 따른 bin을 가져옴
-        Bin bin = getBinPort.findBinByProductNumber(receipt.getProduct().getProductNumber())
-                .orElseThrow(NoAvailableBin::new);
+        Bin bin = getBinPort.findBinByProductNumber(receipt.getReceiptPlan().getProduct().getProductNumber())
+                .orElseThrow(NoAvailableBinException::new);
 
         // 4. 연관관계 설정
         createdStock.assignBin(bin);
