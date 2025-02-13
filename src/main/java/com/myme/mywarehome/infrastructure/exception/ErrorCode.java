@@ -36,6 +36,9 @@ public enum ErrorCode {
     // Receipt
     RECEIPT_PLAN_NOT_FOUND(404, "R001", "해당 입고 예정 정보가 존재하지 않습니다."),
     RECEIPT_NOT_FOUND(404, "R002", "해당 입고 정보가 존재하지 않습니다."),
+    DUPLICATED_OUTBOUND_PRODUCT(409, "R003", "해당 납품된 물품은 이미 등록되었습니다."),
+    OUTBOUND_PRODUCT_ID_PARSE_FAILED(400, "R004", "outboundProductId를 파싱할 수 없습니다."),
+    RECEIPT_PLAN_ITEM_CAPACITY_EXCEEDED(422, "R005", "입고 처리 가능한 용량을 초과하였습니다."),
 
     // Issue
     ISSUE_PLAN_NOT_FOUND(404, "I001", "출고 예정 정보를 찾을 수 없습니다."),
@@ -43,6 +46,7 @@ public enum ErrorCode {
 
     // Stock, Bay, Bin
     NO_AVAILABLE_BIN(409, "S001", "사용가능한 BIN이 없습니다."),
+    STOCK_CREATION_TIMEOUT(408, "S002", "재고를 생성 중 시간초과가 발생하였습니다."),
     ;
 
 
