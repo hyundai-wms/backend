@@ -48,18 +48,22 @@ public class IssuePlan extends BaseTimeEntity {
 
     }
 
+    // 연결된 Product 설정
+    public void connectWithProduct(Product product) {
+        this.product = product;
+    }
+
+
     // issueplan 정보 수정
-    public void updateIssuePlan(Product product, LocalDate issuePlanDate,
-            Integer issuePlanItemCount) {
-        if (product != null) {
-            this.product = product;
-        }
-        if (issuePlanDate != null) {
-            this.issuePlanDate = issuePlanDate;
-        }
-        if (issuePlanItemCount != null) {
+    public void changeIssuePlanItemCount(Integer IssuePlanItemCount) {
+        if(issuePlanItemCount > 0) {
             this.issuePlanItemCount = issuePlanItemCount;
         }
+    }
+
+    // 입고 예정일 수정
+    public void changeIssuePlanDate(LocalDate issuePlanDate) {
+        this.issuePlanDate = issuePlanDate;
     }
 
 }

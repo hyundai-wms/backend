@@ -2,6 +2,7 @@ package com.myme.mywarehome.domains.issue.adapter.in.web.request;
 
 import com.myme.mywarehome.domains.company.application.domain.Company;
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
+import com.myme.mywarehome.domains.issue.application.port.in.command.IssuePlanCommand;
 import com.myme.mywarehome.domains.product.application.domain.Product;
 import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import jakarta.validation.constraints.NotBlank;
@@ -30,5 +31,13 @@ public record UpdateIssuePlanRequest(
                 .issuePlanDate(this.issuePlanDate == null ? null : DateFormatHelper.parseDate(this.issuePlanDate))
                 .build();
 
+    }
+
+    public IssuePlanCommand toCommand() {
+        return new IssuePlanCommand(
+                this.productNumber(),
+                this.itemCount(),
+                DateFormatHelper.parseDate(this.issuePlanDate)
+        );
     }
 }

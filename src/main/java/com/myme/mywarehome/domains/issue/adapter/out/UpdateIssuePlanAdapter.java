@@ -4,20 +4,25 @@ import com.myme.mywarehome.domains.issue.adapter.out.persistence.IssuePlanJpaRep
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.issue.application.port.out.UpdateIssuePlanPort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class UpdateIssuePlanAdapter implements UpdateIssuePlanPort {
+
     private final IssuePlanJpaRepository issuePlanJpaRepository;
 
     @Override
-    public IssuePlan update(IssuePlan issuePlan) { return issuePlanJpaRepository.save(issuePlan); }
-
-    @Override
-    public Optional<IssuePlan> findById(Long id) {
-        return issuePlanJpaRepository.findById(id);
+    public Optional<IssuePlan> update(IssuePlan issuePlan) {
+        if (issuePlan.getIssuePlanId() != null) {
+            return Optional.of(issuePlanJpaRepository.save(issuePlan));
+        } else {
+            log.error("IssuePlan Not Changed : IssuePlan Id is null");
+            return Optional.empty();
+        }
     }
 }
