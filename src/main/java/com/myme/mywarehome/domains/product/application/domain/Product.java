@@ -1,8 +1,10 @@
 package com.myme.mywarehome.domains.product.application.domain;
 
 import com.myme.mywarehome.domains.company.application.domain.Company;
+import com.myme.mywarehome.domains.stock.application.domain.Bay;
 import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,6 +32,8 @@ public class Product extends BaseTimeEntity {
     private Integer leadTime;
     private String applicableEngine;
 
+    @OneToMany(mappedBy = "product")
+    private List<Bay> bayList;
 
     @Transient  // DB 컬럼으로는 만들지 않음
     private Integer page;
@@ -42,7 +46,7 @@ public class Product extends BaseTimeEntity {
 
 
     @Builder
-    public Product(Long productId, String productNumber, String productName, Integer eachCount, Integer safeItemCount, Integer leadTime, String applicableEngine ,Integer page, Integer size, String sort, Company company) {
+    public Product(Long productId, String productNumber, String productName, Integer eachCount, Integer safeItemCount, Integer leadTime, String applicableEngine, List<Bay> bayList, Integer page, Integer size, String sort, Company company) {
         this.productId = productId;
         this.productNumber = productNumber;
         this.productName = productName;
@@ -51,6 +55,7 @@ public class Product extends BaseTimeEntity {
         this.leadTime = leadTime;
         this.applicableEngine = applicableEngine;
         this.company = company;
+        this.bayList = bayList;
         this.page = page;
         this.size = size;
         this.sort = sort;

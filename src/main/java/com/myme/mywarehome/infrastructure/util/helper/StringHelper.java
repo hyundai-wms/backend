@@ -41,6 +41,11 @@ public class StringHelper {
             return String.format("IZ" + ID_FORMAT, id);
         }
 
+        // Stock 코드 생성 (SZ + 8자리 숫자)
+        public static String generateStockCode(Long id) {
+            return String.format("SZ" + ID_FORMAT, id);
+        }
+
         // InventoryRecord 코드 생성 (IR + 8자리 숫자)
         public static String generateInventoryRecordCode(Long id) {
             return String.format("IR" + ID_FORMAT, id);
