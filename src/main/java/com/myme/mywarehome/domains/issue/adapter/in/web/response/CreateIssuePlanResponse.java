@@ -6,7 +6,6 @@ import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-// Todo: itemCount, companyId, companyCode, companyName 추가
 public record CreateIssuePlanResponse(
         Long issuePlanId,
         String issuePlanCode,
