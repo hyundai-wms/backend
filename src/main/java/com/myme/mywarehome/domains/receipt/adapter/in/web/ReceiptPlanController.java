@@ -2,13 +2,16 @@ package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.CreateReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.GetAllReceiptPlanRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptProcessedRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.UpdateReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.GetAllReceiptPlanResponse;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptPlanResponse;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessedResponse;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.CreateReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.DeleteReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.GetAllReceiptPlanUseCase;
+import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessedUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.UpdateReceiptPlanUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
@@ -35,6 +38,7 @@ public class ReceiptPlanController {
     private final CreateReceiptPlanUseCase createReceiptPlanUseCase;
     private final UpdateReceiptPlanUseCase updateReceiptPlanUseCase;
     private final DeleteReceiptPlanUseCase deleteReceiptPlanUseCase;
+    private final ReceiptProcessedUseCase receiptProcessedUseCase;
 
     @GetMapping
     public CommonResponse<GetAllReceiptPlanResponse> getAllReceiptPlans(
@@ -74,6 +78,18 @@ public class ReceiptPlanController {
                 result.stream()
                         .map(ReceiptPlanResponse::from)
                         .toList()
+        );
+    }
+
+    @PostMapping("{outboundProductId}/items")
+    public CommonResponse<ReceiptProcessedResponse> receiptProcessed(
+            @PathVariable("outboundProductId") String outboundProductId,
+            @Valid @RequestBody ReceiptProcessedRequest request
+    ) {
+        return CommonResponse.from(
+                ReceiptProcessedResponse.from(
+                        receiptProcessedUseCase.process(outboundProductId, request.toCommand())
+                )
         );
     }
 
