@@ -57,4 +57,4 @@ jobs:
               -e DB_URL=${{ secrets.DB_URL }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              ${{ secrets.DOCKERHUB_USERNAME }}/mycarforme-backend:latest
+              ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
