@@ -18,7 +18,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         Info info = new Info()
-                .title("MyWareHome Sagger API")
+                .title("MyWareHome API Specification")
                 .version("v1.0")
                 .description("MyWareHome API 문서입니다.");
 
