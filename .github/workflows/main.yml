@@ -40,6 +40,9 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Docker 네트워크 생성
+            docker network create myme-network || true
+            
             # 기존 컨테이너 중지 및 삭제
             docker stop backend-container || true
             docker rm backend-container || true
@@ -53,6 +56,7 @@ jobs:
             # 새 컨테이너 실행
             docker run -d \
               --name backend-container \
+              --network myme-network \
               -p 8080:8080 \
               -e DB_URL=${{ secrets.DB_URL }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
