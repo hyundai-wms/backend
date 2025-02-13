@@ -24,25 +24,19 @@ public class CreateReceiptPlanService implements CreateReceiptPlanUseCase {
     @Override
     @Transactional
     public ReceiptPlan createReceiptPlan(ReceiptPlanCommand command) {
-
-        // 1. 기본 receiptPlan 생성
-        ReceiptPlan receiptPlan = ReceiptPlan.builder()
-                .receiptPlanDate(command.receiptPlanDate())
-                .receiptPlanItemCount(command.itemCount())
-                .build();
-
-        // 2. P/N으로 Product 조회
+        // 1. P/N으로 Product 조회
         Product product = getProductPort.findByProductNumber(command.productNumber())
                 .orElseThrow(ProductNotFoundException::new);
 
-        // 3. Product 연결
-        receiptPlan.connectWithProduct(product);
+        // 2. ReceiptPlan 생성 및 연관관계 설정
+        ReceiptPlan receiptPlan = ReceiptPlan.builder()
+                .receiptPlanDate(command.receiptPlanDate())
+                .receiptPlanItemCount(command.itemCount())
+                .product(product)  // 생성자에서 바로 주입
+                .build();
 
-        // 4. ReceiptPlan 생성
-        ReceiptPlan createdReceiptPlan = createReceiptPlanPort.create(receiptPlan);
-        createdReceiptPlan.generateReceiptPlanCode();
-
-        return createdReceiptPlan;
+        // 3. 저장 (이 시점에 @PostPersist로 receiptPlanCode가 생성됨)
+        return createReceiptPlanPort.create(receiptPlan);
     }
 
     @Override
@@ -63,27 +57,20 @@ public class CreateReceiptPlanService implements CreateReceiptPlanUseCase {
         // 2. 각 command를 ReceiptPlan으로 변환 및 Product 연결
         List<ReceiptPlan> receiptPlans = commandList.stream()
                 .map(command -> {
-                    ReceiptPlan receiptPlan = ReceiptPlan.builder()
-                            .receiptPlanDate(command.receiptPlanDate())
-                            .receiptPlanItemCount(command.itemCount())
-                            .build();
-
                     Product product = productMap.get(command.productNumber());
                     if (product == null) {
                         throw new ProductNotFoundException();
                     }
 
-                    receiptPlan.connectWithProduct(product);
-                    return receiptPlan;
+                    return ReceiptPlan.builder()
+                            .receiptPlanDate(command.receiptPlanDate())
+                            .receiptPlanItemCount(command.itemCount())
+                            .product(product)  // 생성자에서 바로 주입
+                            .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         // 3. Bulk 저장
-        List<ReceiptPlan> createdReceiptPlanList = createReceiptPlanPort.createBulk(receiptPlans);
-
-        // 4. 코드 생성
-        createdReceiptPlanList.forEach(ReceiptPlan::generateReceiptPlanCode);
-
-        return createdReceiptPlanList;
+        return createReceiptPlanPort.createBulk(receiptPlans);
     }
 }

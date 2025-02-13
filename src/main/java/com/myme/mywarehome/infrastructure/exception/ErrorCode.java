@@ -40,6 +40,9 @@ public enum ErrorCode {
     // Issue
     ISSUE_PLAN_NOT_FOUND(404, "I001", "출고 예정 정보를 찾을 수 없습니다."),
     ISSUE_PLAN_EXCEED_STOCK(404, "I002", "출고 예정 수량이 현재 재고량보다 많습니다."),
+
+    // Stock, Bay, Bin
+    NO_AVAILABLE_BIN(409, "S001", "사용가능한 BIN이 없습니다."),
     ;
 
 

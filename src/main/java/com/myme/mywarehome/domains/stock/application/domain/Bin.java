@@ -45,4 +45,9 @@ public class Bin extends BaseTimeEntity {
         this.bay = bay;
         this.binLocation = binLocation;
     }
+
+    // 연결된 Stock 설정
+    public void connectWithStock(Stock stock) {
+        this.stock = stock;
+    }
 }

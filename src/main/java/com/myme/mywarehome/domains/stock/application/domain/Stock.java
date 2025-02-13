@@ -11,9 +11,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,7 +32,7 @@ public class Stock extends BaseTimeEntity {
     private String stockCode;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receipt_id", unique = true)
+    @JoinColumn(name = "receipt_id")
     private Receipt receipt;
 
     // todo : issue 쪽도 추가해야 함
@@ -41,15 +43,30 @@ public class Stock extends BaseTimeEntity {
     @Version
     private Long version;
 
-    // 새로운 코드 부여
-    public void generateStockCode() {
-        if(this.stockId != null){
-            this.stockCode = CodeGenerator.generateStockCode(stockId);
-        }
+    @Builder
+    private Stock(Long stockId, String stockCode, Receipt receipt, Bin bin) {
+        this.stockId = stockId;
+        this.stockCode = stockCode;
+        this.receipt = receipt;
+        this.bin = bin;
     }
 
-    // 연결된 Receipt 설정
-    public void connectWithReceipt(Receipt receipt) {
-        this.receipt = receipt;
+    // 새로운 코드 부여
+    @PostPersist
+    private void generateStockCode() {
+        this.stockCode = CodeGenerator.generateStockCode(stockId);
+    }
+
+    // 연결된 Bin 설정
+    public void assignBin(Bin bin) {
+        // 기존 관계 제거
+        if (this.bin != null) {
+            this.bin.connectWithStock(null);
+        }
+
+        this.bin = bin;
+        if (bin != null && bin.getStock() != this) {
+            bin.connectWithStock(this);
+        }
     }
 }
