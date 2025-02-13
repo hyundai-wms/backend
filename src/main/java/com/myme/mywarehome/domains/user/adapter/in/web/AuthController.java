@@ -6,10 +6,12 @@ import com.myme.mywarehome.domains.user.adapter.in.web.response.UserInfoResponse
 import com.myme.mywarehome.domains.user.application.port.in.LoginUseCase;
 import com.myme.mywarehome.domains.user.application.port.in.UpdateUserPasswordUseCase;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Auth", description = "인증 관련 API")
 @RestController
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
