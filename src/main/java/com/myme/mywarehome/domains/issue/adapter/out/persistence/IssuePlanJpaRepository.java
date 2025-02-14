@@ -2,6 +2,8 @@ package com.myme.mywarehome.domains.issue.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import java.time.LocalDate;
+import java.util.Optional;
+
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,4 +39,5 @@ public interface IssuePlanJpaRepository extends JpaRepository<IssuePlan, Long> {
             @Param("productNumber") String productNumber,
             @Param("issuePlanCode") String issuePlanCode,
             Pageable pageable);
+
 }
