@@ -2,17 +2,13 @@ package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.CreateReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.GetAllReceiptPlanRequest;
-import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptProcessedRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptOrReturnProcessRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.UpdateReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.GetAllReceiptPlanResponse;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptPlanResponse;
-import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessedResponse;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessResponse;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
-import com.myme.mywarehome.domains.receipt.application.port.in.CreateReceiptPlanUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.DeleteReceiptPlanUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.GetAllReceiptPlanUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessedUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.UpdateReceiptPlanUseCase;
+import com.myme.mywarehome.domains.receipt.application.port.in.*;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
@@ -38,7 +34,8 @@ public class ReceiptPlanController {
     private final CreateReceiptPlanUseCase createReceiptPlanUseCase;
     private final UpdateReceiptPlanUseCase updateReceiptPlanUseCase;
     private final DeleteReceiptPlanUseCase deleteReceiptPlanUseCase;
-    private final ReceiptProcessedUseCase receiptProcessedUseCase;
+    private final ReceiptProcessUseCase receiptProcessedUseCase;
+    private final ReceiptReturnUseCase receiptReturnUseCase;
 
     @GetMapping
     public CommonResponse<GetAllReceiptPlanResponse> getAllReceiptPlans(
@@ -82,15 +79,24 @@ public class ReceiptPlanController {
     }
 
     @PostMapping("{outboundProductId}/items")
-    public CommonResponse<ReceiptProcessedResponse> receiptProcessed(
+    public CommonResponse<ReceiptProcessResponse> receiptProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody ReceiptProcessedRequest request
+            @Valid @RequestBody ReceiptOrReturnProcessRequest request
     ) {
         return CommonResponse.from(
-                ReceiptProcessedResponse.from(
+                ReceiptProcessResponse.from(
                         receiptProcessedUseCase.process(outboundProductId, request.toCommand())
                 )
         );
+    }
+
+    @PostMapping("{outboundProductId}/returns")
+    public CommonResponse<Void> returnProcessed(
+            @PathVariable("outboundProductId") String outboundProductId,
+            @Valid @RequestBody ReceiptOrReturnProcessRequest request
+    ) {
+        receiptReturnUseCase.process(outboundProductId, request.toCommand());
+        return CommonResponse.empty();
     }
 
     @PutMapping("/{receiptPlanId}")
