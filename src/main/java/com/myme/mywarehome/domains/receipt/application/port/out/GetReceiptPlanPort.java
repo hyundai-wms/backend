@@ -6,6 +6,8 @@ import com.myme.mywarehome.domains.receipt.application.port.in.command.GetAllRec
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import com.myme.mywarehome.domains.receipt.application.port.in.result.TodayReceiptResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,4 +16,5 @@ public interface GetReceiptPlanPort {
     Page<ReceiptPlan> findAllReceiptPlans(GetAllReceiptPlanCommand command, Pageable pageable);
     boolean existsReceiptPlanById(Long receiptPlanId);
     List<ReceiptPlan> findAllReceiptPlansByDate(LocalDate selectedDate);
+    Page<TodayReceiptResult> findTodayReceipts(LocalDate today, Pageable pageable);
 }
