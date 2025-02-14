@@ -1,6 +1,7 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptOrReturnProcessRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptProcessCompleteRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessResponse;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
@@ -34,6 +35,14 @@ public class ReceiptController {
             @Valid @RequestBody ReceiptOrReturnProcessRequest request
     ) {
         receiptReturnUseCase.process(outboundProductId, request.toCommand());
+        return CommonResponse.empty();
+    }
+
+    @PostMapping("/complete")
+    public CommonResponse<Void> processCompleted(
+            @Valid @RequestBody ReceiptProcessCompleteRequest request
+    ) {
+        receiptProcessedUseCase.processBulk(request.toCommand());
         return CommonResponse.empty();
     }
 }

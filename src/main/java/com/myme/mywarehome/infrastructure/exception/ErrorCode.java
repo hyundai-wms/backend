@@ -39,6 +39,7 @@ public enum ErrorCode {
     DUPLICATED_OUTBOUND_PRODUCT(409, "R003", "해당 납품된 물품은 이미 등록되었습니다."),
     OUTBOUND_PRODUCT_ID_PARSE_FAILED(400, "R004", "outboundProductId를 파싱할 수 없습니다."),
     RECEIPT_PLAN_ITEM_CAPACITY_EXCEEDED(422, "R005", "입고 처리 가능한 용량을 초과하였습니다."),
+    RECEIPT_BULK_PROCESS_FAILED(500, "R006", "알 수 없는 이유로 입고 Bulk 처리 작업이 실패하였습니다."),
 
     // Issue
     ISSUE_PLAN_NOT_FOUND(404, "I001", "출고 예정 정보를 찾을 수 없습니다."),

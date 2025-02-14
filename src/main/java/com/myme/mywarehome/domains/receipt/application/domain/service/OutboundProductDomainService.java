@@ -48,4 +48,13 @@ public class OutboundProductDomainService {
 
         return receiptPlan;
     }
+
+    public void createOutboundProductBulk(String outboundProductId, ReceiptPlan receiptPlan) {
+        OutboundProduct outboundProduct = OutboundProduct.builder()
+                .outboundProductId(outboundProductId)
+                .receiptPlanId(receiptPlan.getReceiptPlanId())
+                .build();
+
+        createOutboundProductPort.create(outboundProduct);
+    }
 }

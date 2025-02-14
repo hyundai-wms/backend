@@ -6,6 +6,8 @@ import com.myme.mywarehome.domains.stock.application.port.out.CreateStockPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class CreateStockAdapter implements CreateStockPort {
@@ -14,5 +16,10 @@ public class CreateStockAdapter implements CreateStockPort {
     @Override
     public Stock create(Stock stock) {
         return stockJpaRepository.save(stock);
+    }
+
+    @Override
+    public void createBulk(List<Stock> stocks) {
+        stockJpaRepository.saveAll(stocks);
     }
 }
