@@ -14,6 +14,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
+
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -28,24 +31,17 @@ public class Return extends BaseTimeEntity {
     @JoinColumn(name = "receipt_plan_id")
     private ReceiptPlan receiptPlan;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="product_id")
-    private Product product;
+    private LocalDate returnDate;
 
     @Builder
-    private Return(Long returnId, ReceiptPlan receiptPlan, Product product) {
+    private Return(Long returnId, ReceiptPlan receiptPlan, LocalDate returnDate) {
         this.returnId = returnId;
         this.receiptPlan = receiptPlan;
-        this.product = product;
+        this.returnDate = returnDate;
     }
 
     // 연결된 ReceiptPlan 설정
     public void connectWithReceiptPlan(ReceiptPlan receiptPlan) {
         this.receiptPlan = receiptPlan;
-    }
-
-    // 연결된 Product 설정
-    public void connectWithProduct(Product product) {
-        this.product = product;
     }
 }

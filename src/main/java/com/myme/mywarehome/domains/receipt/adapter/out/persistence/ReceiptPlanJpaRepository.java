@@ -3,6 +3,8 @@ package com.myme.mywarehome.domains.receipt.adapter.out.persistence;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.GetAllReceiptPlanCommand;
 import java.time.LocalDate;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,4 +38,7 @@ public interface ReceiptPlanJpaRepository extends JpaRepository<ReceiptPlan, Lon
             @Param("receiptPlanEndDate") LocalDate receiptPlanEndDate,
             @Param("productNumber") String productNumber,
             Pageable pageable);
+
+    @Query("SELECT DISTINCT rp FROM ReceiptPlan rp JOIN FETCH rp.product WHERE rp.receiptPlanDate = :date")
+    List<ReceiptPlan> findByReceiptPlanDate(@Param("date") LocalDate date);
 }

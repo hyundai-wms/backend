@@ -4,6 +4,9 @@ import com.myme.mywarehome.domains.receipt.adapter.out.persistence.ReceiptPlanJp
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.GetAllReceiptPlanCommand;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPlanPort;
+
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,5 +39,10 @@ public class GetReceiptPlanAdapter implements GetReceiptPlanPort {
     @Override
     public boolean existsReceiptPlanById(Long receiptPlanId) {
         return receiptPlanJpaRepository.existsById(receiptPlanId);
+    }
+
+    @Override
+    public List<ReceiptPlan> findAllReceiptPlansByDate(LocalDate selectedDate) {
+        return receiptPlanJpaRepository.findByReceiptPlanDate(selectedDate);
     }
 }
