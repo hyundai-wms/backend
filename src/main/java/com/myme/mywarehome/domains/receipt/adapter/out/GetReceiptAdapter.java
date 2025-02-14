@@ -1,13 +1,17 @@
 package com.myme.mywarehome.domains.receipt.adapter.out;
 
 import com.myme.mywarehome.domains.receipt.adapter.out.persistence.ReceiptJpaRepository;
+import com.myme.mywarehome.domains.receipt.adapter.out.persistence.ReceiptPlanJpaRepository;
 import com.myme.mywarehome.domains.receipt.application.domain.Receipt;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.GetAllReceiptCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.result.TodayReceiptResult;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor

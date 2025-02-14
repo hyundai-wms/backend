@@ -1,11 +1,13 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.GetAllReceiptRequest;
-import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptOrReturnProcessRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.request.SelectedDateRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptProcessCompleteRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.GetAllReceiptResponse;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessResponse;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.response.TodayReceiptResponse;
 import com.myme.mywarehome.domains.receipt.application.port.in.GetAllReceiptUseCase;
+import com.myme.mywarehome.domains.receipt.application.port.in.GetTodayReceiptUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
@@ -24,6 +26,7 @@ public class ReceiptController {
     private final ReceiptProcessUseCase receiptProcessedUseCase;
     private final ReceiptReturnUseCase receiptReturnUseCase;
     private final GetAllReceiptUseCase getAllReceiptUseCase;
+    private final GetTodayReceiptUseCase getTodayReceiptUseCase;
 
     @GetMapping
     public CommonResponse<GetAllReceiptResponse> getAllReceipts(
@@ -40,14 +43,26 @@ public class ReceiptController {
         );
     }
 
+    @GetMapping("/today")
+    public CommonResponse<TodayReceiptResponse> getTodayReceipts(
+            @Valid @RequestBody(required = false) SelectedDateRequest request,
+            @PageableDefault Pageable pageable
+    ) {
+        return CommonResponse.from(
+                TodayReceiptResponse.from(
+                        getTodayReceiptUseCase.getTodayReceipt(SelectedDateRequest.toCommand(request), pageable)
+                )
+        );
+    }
+
     @PostMapping("/{outboundProductId}/items")
     public CommonResponse<ReceiptProcessResponse> receiptProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody ReceiptOrReturnProcessRequest request
+            @Valid @RequestBody(required = false) SelectedDateRequest request
     ) {
         return CommonResponse.from(
                 ReceiptProcessResponse.from(
-                        receiptProcessedUseCase.process(outboundProductId, request.toCommand())
+                        receiptProcessedUseCase.process(outboundProductId, SelectedDateRequest.toCommand(request))
                 )
         );
     }
@@ -55,9 +70,9 @@ public class ReceiptController {
     @PostMapping("/{outboundProductId}/returns")
     public CommonResponse<Void> returnProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody ReceiptOrReturnProcessRequest request
+            @Valid @RequestBody(required = false) SelectedDateRequest request
     ) {
-        receiptReturnUseCase.process(outboundProductId, request.toCommand());
+        receiptReturnUseCase.process(outboundProductId, SelectedDateRequest.toCommand(request));
         return CommonResponse.empty();
     }
 

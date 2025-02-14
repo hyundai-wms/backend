@@ -3,6 +3,7 @@ package com.myme.mywarehome.domains.receipt.adapter.out;
 import com.myme.mywarehome.domains.receipt.adapter.out.persistence.ReceiptPlanJpaRepository;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.GetAllReceiptPlanCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.result.TodayReceiptResult;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPlanPort;
 
 import java.time.LocalDate;
@@ -44,5 +45,13 @@ public class GetReceiptPlanAdapter implements GetReceiptPlanPort {
     @Override
     public List<ReceiptPlan> findAllReceiptPlansByDate(LocalDate selectedDate) {
         return receiptPlanJpaRepository.findByReceiptPlanDate(selectedDate);
+    }
+
+    @Override
+    public Page<TodayReceiptResult> findTodayReceipts(LocalDate today, Pageable pageable) {
+        return receiptPlanJpaRepository.findTodayReceipts(
+                today,
+                pageable
+        );
     }
 }

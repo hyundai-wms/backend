@@ -5,6 +5,7 @@ import com.myme.mywarehome.domains.receipt.application.port.in.command.GetAllRec
 import java.time.LocalDate;
 import java.util.List;
 
+import com.myme.mywarehome.domains.receipt.application.port.in.result.TodayReceiptResult;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,4 +42,35 @@ public interface ReceiptPlanJpaRepository extends JpaRepository<ReceiptPlan, Lon
 
     @Query("SELECT DISTINCT rp FROM ReceiptPlan rp JOIN FETCH rp.product WHERE rp.receiptPlanDate = :date")
     List<ReceiptPlan> findByReceiptPlanDate(@Param("date") LocalDate date);
+
+    @EntityGraph(attributePaths = {"product", "product.company"})
+    @Query("""
+        SELECT new com.myme.mywarehome.domains.receipt.application.port.in.result.TodayReceiptResult(
+            rp.receiptPlanId,
+            rp.receiptPlanCode,
+            rp.receiptPlanDate,
+            CAST(COALESCE((SELECT COUNT(DISTINCT r2.receiptId) FROM Receipt r2 WHERE r2.receiptPlan = rp), 0) + 
+                 COALESCE((SELECT COUNT(DISTINCT rt2.returnId) FROM Return rt2 WHERE rt2.receiptPlan = rp), 0) AS long),
+            CAST(rp.receiptPlanItemCount AS long),
+            CASE
+                WHEN COALESCE((SELECT COUNT(DISTINCT r2.receiptId) FROM Receipt r2 WHERE r2.receiptPlan = rp), 0) + 
+                     COALESCE((SELECT COUNT(DISTINCT rt2.returnId) FROM Return rt2 WHERE rt2.receiptPlan = rp), 0) = 0 
+                THEN 'NOT_STARTED'
+                WHEN COALESCE((SELECT COUNT(DISTINCT r2.receiptId) FROM Receipt r2 WHERE r2.receiptPlan = rp), 0) + 
+                     COALESCE((SELECT COUNT(DISTINCT rt2.returnId) FROM Return rt2 WHERE rt2.receiptPlan = rp), 0) < rp.receiptPlanItemCount 
+                THEN 'PROCESSING'
+                ELSE 'DONE'
+            END,
+            rp.product.productNumber,
+            rp.product.productName,
+            rp.product.company.companyId,
+            rp.product.company.companyCode,
+            rp.product.company.companyName,
+            rp.createdAt,
+            rp.updatedAt
+        )
+        FROM ReceiptPlan rp
+        WHERE rp.receiptPlanDate = :today
+        """)
+    Page<TodayReceiptResult> findTodayReceipts(LocalDate today, Pageable pageable);
 }
