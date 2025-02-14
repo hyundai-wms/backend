@@ -6,7 +6,7 @@ import com.myme.mywarehome.domains.receipt.application.domain.Return;
 import com.myme.mywarehome.domains.receipt.application.domain.service.OutboundProductDomainService;
 import com.myme.mywarehome.domains.receipt.application.exception.ReceiptBulkProcessException;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptOrReturnProcessCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.command.SelectedDateCommand;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptProcessBulkCommand;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptBulkCreatedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptCreatedEvent;
@@ -38,7 +38,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
 
     @Override
     @Transactional
-    public Stock process(String outboundProductId, ReceiptOrReturnProcessCommand command) {
+    public Stock process(String outboundProductId, SelectedDateCommand command) {
         // 1. OutboundProduct 검증 및 연관 된 ReceiptPlan 가져오기
         ReceiptPlan receiptPlan = outboundProductDomainService.validateAndCreateOutboundProduct(outboundProductId);
 

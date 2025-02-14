@@ -1,7 +1,7 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.GetAllReceiptRequest;
-import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptOrReturnProcessRequest;
+import com.myme.mywarehome.domains.receipt.adapter.in.web.request.SelectedDateRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptProcessCompleteRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.GetAllReceiptResponse;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessResponse;
@@ -43,7 +43,7 @@ public class ReceiptController {
     @PostMapping("/{outboundProductId}/items")
     public CommonResponse<ReceiptProcessResponse> receiptProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody ReceiptOrReturnProcessRequest request
+            @Valid @RequestBody SelectedDateRequest request
     ) {
         return CommonResponse.from(
                 ReceiptProcessResponse.from(
@@ -55,7 +55,7 @@ public class ReceiptController {
     @PostMapping("/{outboundProductId}/returns")
     public CommonResponse<Void> returnProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody ReceiptOrReturnProcessRequest request
+            @Valid @RequestBody SelectedDateRequest request
     ) {
         receiptReturnUseCase.process(outboundProductId, request.toCommand());
         return CommonResponse.empty();

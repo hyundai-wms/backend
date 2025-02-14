@@ -1,15 +1,15 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web.request;
 
-import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptOrReturnProcessCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.command.SelectedDateCommand;
 import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 
-public record ReceiptOrReturnProcessRequest(
+public record SelectedDateRequest(
         @Pattern(regexp = "\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])", message = "날짜 형식이 올바르지 않습니다")
         String selectedDate
 ) {
-    public ReceiptOrReturnProcessCommand toCommand() {
+    public SelectedDateCommand toCommand() {
         LocalDate today;
         if(selectedDate == null || selectedDate.isBlank()) {
             today = LocalDate.now();
@@ -17,6 +17,6 @@ public record ReceiptOrReturnProcessRequest(
             today = DateFormatHelper.parseDate(selectedDate);
         }
 
-        return new ReceiptOrReturnProcessCommand(today);
+        return new SelectedDateCommand(today);
     }
 }

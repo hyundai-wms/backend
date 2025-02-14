@@ -4,7 +4,7 @@ import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.domain.Return;
 import com.myme.mywarehome.domains.receipt.application.domain.service.OutboundProductDomainService;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptOrReturnProcessCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.command.SelectedDateCommand;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReturnPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class ReceiptReturnService implements ReceiptReturnUseCase {
 
     @Override
     @Transactional
-    public void process(String outboundProductId, ReceiptOrReturnProcessCommand command) {
+    public void process(String outboundProductId, SelectedDateCommand command) {
         // 1. OutboundProduct 검증 및 연관 된 ReceiptPlan 가져오기
         ReceiptPlan receiptPlan = outboundProductDomainService.validateAndCreateOutboundProduct(outboundProductId);
 
