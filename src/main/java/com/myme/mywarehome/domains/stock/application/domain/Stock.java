@@ -1,5 +1,6 @@
 package com.myme.mywarehome.domains.stock.application.domain;
 
+import com.myme.mywarehome.domains.issue.application.domain.Issue;
 import com.myme.mywarehome.domains.receipt.application.domain.Receipt;
 import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;
 import com.myme.mywarehome.infrastructure.util.helper.StringHelper.CodeGenerator;
@@ -36,6 +37,9 @@ public class Stock extends BaseTimeEntity {
     private Receipt receipt;
 
     // todo : issue 쪽도 추가해야 함
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "issue_id")
+    private Issue issue;
 
     @OneToOne(mappedBy = "stock")
     private Bin bin;
@@ -44,11 +48,12 @@ public class Stock extends BaseTimeEntity {
     private Long version;
 
     @Builder
-    private Stock(Long stockId, String stockCode, Receipt receipt, Bin bin) {
+    private Stock(Long stockId, String stockCode, Receipt receipt, Bin bin, Issue issue) {
         this.stockId = stockId;
         this.stockCode = stockCode;
         this.receipt = receipt;
         this.bin = bin;
+        this.issue = issue;
     }
 
     // 새로운 코드 부여
@@ -67,6 +72,14 @@ public class Stock extends BaseTimeEntity {
         this.bin = bin;
         if (bin != null && bin.getStock() != this) {
             bin.connectWithStock(this);
+        }
+    }
+
+    // 연결된 Issue 설정 + 양방향 연결
+    public void assignIssue(Issue issue) {
+        this.issue = issue;
+        if (issue != null && issue.getStock() != this) {
+            issue.connectWithStock(this);
         }
     }
 }
