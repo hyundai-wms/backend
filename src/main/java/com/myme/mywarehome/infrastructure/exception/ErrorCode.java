@@ -44,10 +44,14 @@ public enum ErrorCode {
     // Issue
     ISSUE_PLAN_NOT_FOUND(404, "I001", "출고 예정 정보를 찾을 수 없습니다."),
     ISSUE_PLAN_EXCEED_STOCK(404, "I002", "출고 예정 수량이 현재 재고량보다 많습니다."),
+    ISSUE_PLAN_ITEM_COUNT_EXCEEDED(422, "I003", "출고 예정 수량을 초과하였습니다."),
 
     // Stock, Bay, Bin
     NO_AVAILABLE_BIN(409, "S001", "사용가능한 BIN이 없습니다."),
     STOCK_CREATION_TIMEOUT(408, "S002", "재고를 생성 중 시간초과가 발생하였습니다."),
+    STOCK_ALREADY_ISSUED(409, "I004", "이미 출고 처리된 재고입니다."),
+    STOCK_ASSIGN_TIMEOUT(408, "S003", "재고 할당 처리 시간이 초과되었습니다."),
+    STOCK_NOT_FOUND(404, "S004", "해당 재고를 찾을 수 없습니다."),
     ;
 
 
