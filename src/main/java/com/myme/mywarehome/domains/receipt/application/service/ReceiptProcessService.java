@@ -5,6 +5,7 @@ import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.domain.service.OutboundProductDomainService;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptOrReturnProcessCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptProcessBulkCommand;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptCreatedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReceiptPort;
 import com.myme.mywarehome.domains.stock.application.domain.Stock;
@@ -47,5 +48,12 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
         } catch (Exception e) {
             throw new StockCreationTimeoutException();
         }
+    }
+
+    @Override
+    public void processBulk(ReceiptProcessBulkCommand command) {
+        // 1. 입고 예정 정보 가져오기
+
+
     }
 }
