@@ -2,11 +2,9 @@ package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.CreateReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.GetAllReceiptPlanRequest;
-import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptOrReturnProcessRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.UpdateReceiptPlanRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.GetAllReceiptPlanResponse;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptPlanResponse;
-import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessResponse;
 import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.port.in.*;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
