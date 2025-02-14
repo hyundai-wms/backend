@@ -7,7 +7,7 @@ import com.myme.mywarehome.domains.receipt.application.exception.ReceiptPlanItem
 import com.myme.mywarehome.domains.receipt.application.exception.DuplicatedOutboundProductException;
 import com.myme.mywarehome.domains.receipt.application.exception.ReceiptPlanNotFoundException;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessedUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptProcessedCommand;
+import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptOrReturnProcessedCommand;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptCreatedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateOutboundProductPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReceiptPort;
@@ -34,7 +34,7 @@ public class ReceiptProcessedService implements ReceiptProcessedUseCase {
 
     @Override
     @Transactional
-    public Stock process(String outboundProductId, ReceiptProcessedCommand command) {
+    public Stock process(String outboundProductId, ReceiptOrReturnProcessedCommand command) {
         // 1. 해당 물품이 이미 등록되어있는지 확인
         if(getOutboundProductPort.existsByOutboundProductId(outboundProductId)) {
             throw new DuplicatedOutboundProductException();
