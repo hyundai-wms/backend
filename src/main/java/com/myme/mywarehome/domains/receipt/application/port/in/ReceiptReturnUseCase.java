@@ -1,7 +1,7 @@
 package com.myme.mywarehome.domains.receipt.application.port.in;
 
-import com.myme.mywarehome.domains.receipt.application.port.in.command.SelectedDateCommand;
+import java.time.LocalDate;
 
 public interface ReceiptReturnUseCase {
-    void process(String outboundProductId, SelectedDateCommand command);
+    void process(String outboundProductId, LocalDate selectedDate);
 }

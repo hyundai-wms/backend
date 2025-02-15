@@ -1,7 +1,6 @@
 package com.myme.mywarehome.domains.receipt.adapter.in.web;
 
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.GetAllReceiptRequest;
-import com.myme.mywarehome.domains.receipt.adapter.in.web.request.SelectedDateRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.request.ReceiptProcessCompleteRequest;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.GetAllReceiptResponse;
 import com.myme.mywarehome.domains.receipt.adapter.in.web.response.ReceiptProcessResponse;
@@ -10,6 +9,7 @@ import com.myme.mywarehome.domains.receipt.application.port.in.GetAllReceiptUseC
 import com.myme.mywarehome.domains.receipt.application.port.in.GetTodayReceiptUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
+import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,7 @@ public class ReceiptController {
     ) {
         return CommonResponse.from(
                 TodayReceiptResponse.from(
-                        getTodayReceiptUseCase.getTodayReceipt(SelectedDateRequest.toCommand(request), pageable)
+                        getTodayReceiptUseCase.getTodayReceipt(SelectedDateRequest.toLocalDate(request), pageable)
                 )
         );
     }
@@ -62,7 +62,7 @@ public class ReceiptController {
     ) {
         return CommonResponse.from(
                 ReceiptProcessResponse.from(
-                        receiptProcessedUseCase.process(outboundProductId, SelectedDateRequest.toCommand(request))
+                        receiptProcessedUseCase.process(outboundProductId, SelectedDateRequest.toLocalDate(request))
                 )
         );
     }
@@ -72,7 +72,7 @@ public class ReceiptController {
             @PathVariable("outboundProductId") String outboundProductId,
             @Valid @RequestBody(required = false) SelectedDateRequest request
     ) {
-        receiptReturnUseCase.process(outboundProductId, SelectedDateRequest.toCommand(request));
+        receiptReturnUseCase.process(outboundProductId, SelectedDateRequest.toLocalDate(request));
         return CommonResponse.empty();
     }
 
