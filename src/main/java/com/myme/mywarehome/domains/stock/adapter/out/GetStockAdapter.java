@@ -30,4 +30,10 @@ public class GetStockAdapter implements GetStockPort {
         return stockMybatisRepository.findStockSummaries(command, pageable, selectedDate);
     }
 
+    @Override
+    public Page<Stock> findByProductNumber(String productNumber, Pageable pageable,
+            LocalDate selectedDate) {
+        return stockJpaRepository.findByProductNumber(productNumber, selectedDate, pageable);
+    }
+
 }
