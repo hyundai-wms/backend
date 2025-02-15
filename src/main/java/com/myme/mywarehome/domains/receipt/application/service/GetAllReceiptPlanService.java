@@ -9,14 +9,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class GetAllReceiptPlanService implements GetAllReceiptPlanUseCase {
     private final GetReceiptPlanPort getReceiptPlanPort;
 
     @Override
-    public Page<ReceiptPlan> getAllReceiptPlan(GetAllReceiptPlanCommand command,
-            Pageable pageable) {
-        return getReceiptPlanPort.findAllReceiptPlans(command, pageable);
+    public Page<ReceiptPlan> getAllReceiptPlan(GetAllReceiptPlanCommand command, Pageable pageable, LocalDate selectedDate) {
+        return getReceiptPlanPort.findAllReceiptPlans(command, pageable, selectedDate);
     }
 }

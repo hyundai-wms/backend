@@ -20,24 +20,36 @@ public interface ReceiptPlanJpaRepository extends JpaRepository<ReceiptPlan, Lon
     @EntityGraph(attributePaths = {"product", "product.company"})
     @Query("SELECT rp FROM ReceiptPlan rp WHERE " +
             "(" +
-            "   CASE WHEN (COALESCE(:companyName, '') != '' OR COALESCE(:productName, '') != '') " +
+            "   CASE WHEN (COALESCE(:companyName, '') != '' OR COALESCE(:productName, '') != '' OR COALESCE(:receiptPlanCode, '') != '') " +
             "   THEN (" +
             "       (COALESCE(:companyName, '') != '' AND rp.product.company.companyName LIKE CONCAT('%', :companyName, '%')) " +
             "       OR (COALESCE(:productName, '') != '' AND rp.product.productName LIKE CONCAT('%', :productName, '%')) " +
+            "       OR (COALESCE(:receiptPlanCode, '') != '' AND rp.receiptPlanCode LIKE CONCAT('%', :receiptPlanCode, '%')) " +
             "   ) " +
             "   ELSE true END" +
             ") " +
             "AND (rp.product.company.companyCode LIKE CONCAT('%', COALESCE(:companyCode, ''), '%')) " +
             "AND (CAST(:receiptPlanStartDate AS LocalDate) IS NULL OR rp.receiptPlanDate >= :receiptPlanStartDate) " +
             "AND (CAST(:receiptPlanEndDate AS LocalDate) IS NULL OR rp.receiptPlanDate <= :receiptPlanEndDate) " +
-            "AND (rp.product.productNumber LIKE CONCAT('%', COALESCE(:productNumber, ''), '%')) ")
+            "AND (rp.product.productNumber LIKE CONCAT('%', COALESCE(:productNumber, ''), '%')) " +
+            "ORDER BY " +
+            "   CASE WHEN rp.receiptPlanDate >= :selectedDate " +
+            "       THEN 0 ELSE 1 END, " +
+            "   CASE WHEN rp.receiptPlanDate >= :selectedDate " +
+            "       THEN rp.receiptPlanDate " +
+            "       ELSE NULL END ASC, " +
+            "   CASE WHEN rp.receiptPlanDate < :selectedDate " +
+            "       THEN rp.receiptPlanDate " +
+            "       ELSE NULL END DESC")
     Page<ReceiptPlan> findByConditions(
             @Param("companyName") String companyName,
             @Param("productName") String productName,
+            @Param("receiptPlanCode") String receiptPlanCode,
             @Param("companyCode") String companyCode,
             @Param("receiptPlanStartDate") LocalDate receiptPlanStartDate,
             @Param("receiptPlanEndDate") LocalDate receiptPlanEndDate,
             @Param("productNumber") String productNumber,
+            @Param("selectedDate") LocalDate selectedDate,
             Pageable pageable);
 
     @Query("SELECT DISTINCT rp FROM ReceiptPlan rp JOIN FETCH rp.product WHERE rp.receiptPlanDate = :date")
