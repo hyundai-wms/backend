@@ -13,11 +13,8 @@ public interface OutboundProductJpaRepository extends JpaRepository<OutboundProd
     long countByReceiptPlanId(Long receiptPlanId);
     boolean existsByOutboundProductId(String outboundProductId);
 
-    @Query("""
-            SELECT op.outboundProductId
-            FROM OutboundProduct op
-            WHERE op.receiptPlanId = :receiptPlanId
-            ORDER BY op.outboundProductId
-            """)
+    @Query("SELECT op.outboundProductId FROM OutboundProduct op " +
+            "WHERE op.receiptPlanId = :receiptPlanId " +
+            "ORDER BY op.outboundProductId")
     List<String> findOutboundProductIdsByReceiptPlanId(@Param("receiptPlanId") Long receiptPlanId);
 }
