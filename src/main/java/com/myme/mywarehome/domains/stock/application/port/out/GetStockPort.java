@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface GetStockPort {
     Optional<Stock> findById(Long stockId);
     Page<StockSummaryResult> findStockSummaries(StockSummaryCommand command, Pageable pageable, LocalDate selectedDate);
+    Page<Stock> findByProductNumber(String productNumber, Pageable pageable, LocalDate selectedDate);
 }
