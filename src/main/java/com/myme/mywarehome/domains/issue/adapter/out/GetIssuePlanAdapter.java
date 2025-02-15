@@ -3,7 +3,10 @@ package com.myme.mywarehome.domains.issue.adapter.out;
 import com.myme.mywarehome.domains.issue.adapter.out.persistence.IssuePlanJpaRepository;
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.issue.application.port.in.command.GetAllIssuePlanCommand;
+import com.myme.mywarehome.domains.issue.application.port.in.result.TodayIssueResult;
 import com.myme.mywarehome.domains.issue.application.port.out.GetIssuePlanPort;
+
+import java.time.LocalDate;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +28,7 @@ public class GetIssuePlanAdapter implements GetIssuePlanPort {
         return issuePlanJpaRepository.existsById(issuePlanId);
     }
 
+
     @Override
     public Page<IssuePlan> findAllIssuePlans(GetAllIssuePlanCommand command, Pageable pageable) {
         return issuePlanJpaRepository.findByConditions(
@@ -36,6 +40,13 @@ public class GetIssuePlanAdapter implements GetIssuePlanPort {
                 command.productName(),
                 command.issuePlanCode(),
                 pageable
+        );
+    }
+
+    @Override
+    public Page<TodayIssueResult> findTodayIssues(LocalDate today, Pageable pageable) {
+        return issuePlanJpaRepository.findTodayIssues(
+                today, pageable
         );
     }
 
