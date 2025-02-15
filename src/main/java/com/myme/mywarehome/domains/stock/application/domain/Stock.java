@@ -4,17 +4,7 @@ import com.myme.mywarehome.domains.issue.application.domain.Issue;
 import com.myme.mywarehome.domains.receipt.application.domain.Receipt;
 import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;
 import com.myme.mywarehome.infrastructure.util.helper.StringHelper.CodeGenerator;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.PostPersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,10 +26,12 @@ public class Stock extends BaseTimeEntity {
     @JoinColumn(name = "receipt_id")
     private Receipt receipt;
 
-    // todo : issue 쪽도 추가해야 함
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id")
     private Issue issue;
+
+    @Enumerated(EnumType.STRING)
+    private StockEventType lastEventType;
 
     @OneToOne(mappedBy = "stock")
     private Bin bin;
@@ -48,10 +40,11 @@ public class Stock extends BaseTimeEntity {
     private Long version;
 
     @Builder
-    private Stock(Long stockId, String stockCode, Receipt receipt, Bin bin, Issue issue) {
+    private Stock(Long stockId, String stockCode, Receipt receipt, StockEventType stockEventType, Bin bin, Issue issue) {
         this.stockId = stockId;
         this.stockCode = stockCode;
         this.receipt = receipt;
+        this.lastEventType = stockEventType;
         this.bin = bin;
         this.issue = issue;
     }
@@ -78,6 +71,7 @@ public class Stock extends BaseTimeEntity {
     // 연결된 Issue 설정 + 양방향 연결
     public void assignIssue(Issue issue) {
         this.issue = issue;
+        this.lastEventType = StockEventType.ISSUE;
         if (issue != null && issue.getStock() != this) {
             issue.connectWithStock(this);
         }

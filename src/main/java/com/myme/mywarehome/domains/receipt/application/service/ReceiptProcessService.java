@@ -6,7 +6,6 @@ import com.myme.mywarehome.domains.receipt.application.domain.Return;
 import com.myme.mywarehome.domains.receipt.application.domain.service.OutboundProductDomainService;
 import com.myme.mywarehome.domains.receipt.application.exception.ReceiptBulkProcessException;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
-import com.myme.mywarehome.domains.receipt.application.port.in.command.SelectedDateCommand;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptProcessBulkCommand;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptBulkCreatedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptCreatedEvent;
@@ -18,6 +17,7 @@ import com.myme.mywarehome.domains.stock.application.domain.Stock;
 import com.myme.mywarehome.domains.stock.application.exception.StockCreationTimeoutException;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -38,14 +38,14 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
 
     @Override
     @Transactional
-    public Stock process(String outboundProductId, SelectedDateCommand command) {
+    public Stock process(String outboundProductId, LocalDate selectedDate) {
         // 1. OutboundProduct 검증 및 연관 된 ReceiptPlan 가져오기
         ReceiptPlan receiptPlan = outboundProductDomainService.validateAndCreateOutboundProduct(outboundProductId);
 
         // 2. 입고 기록을 생성
         Receipt receipt = Receipt.builder()
                 .receiptPlan(receiptPlan)
-                .receiptDate(command.selectedDate())
+                .receiptDate(selectedDate)
                 .build();
 
         Receipt createdReceipt = createReceiptPort.create(receipt);
