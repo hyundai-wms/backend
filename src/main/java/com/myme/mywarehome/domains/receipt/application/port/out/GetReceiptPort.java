@@ -9,4 +9,5 @@ import java.time.LocalDate;
 
 public interface GetReceiptPort {
     Page<Receipt> findAllReceipts(GetAllReceiptCommand command, Pageable pageable);
+    long countByReceiptPlanId(Long receiptPlanId);
 }
