@@ -3,6 +3,7 @@ package com.myme.mywarehome.domains.stock.application.service;
 import com.myme.mywarehome.domains.receipt.application.domain.Receipt;
 import com.myme.mywarehome.domains.stock.application.domain.Bin;
 import com.myme.mywarehome.domains.stock.application.domain.Stock;
+import com.myme.mywarehome.domains.stock.application.domain.StockEventType;
 import com.myme.mywarehome.domains.stock.application.exception.NoAvailableBinException;
 import com.myme.mywarehome.domains.stock.application.port.in.CreateStockUseCase;
 import com.myme.mywarehome.domains.stock.application.port.out.CreateStockPort;
@@ -26,6 +27,7 @@ public class CreateStockService implements CreateStockUseCase {
     public Stock createStock(Receipt receipt) {
         // 1. 기본 stock 생성
         Stock stock = Stock.builder()
+                .stockEventType(StockEventType.RECEIPT)
                 .receipt(receipt)
                 .build();
 
@@ -69,6 +71,7 @@ public class CreateStockService implements CreateStockUseCase {
 
             // Stock 생성
             Stock stock = Stock.builder()
+                    .stockEventType(StockEventType.RECEIPT)
                     .receipt(receipt)
                     .build();
 
