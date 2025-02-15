@@ -25,15 +25,16 @@ public class GetReceiptPlanAdapter implements GetReceiptPlanPort {
     }
 
     @Override
-    public Page<ReceiptPlan> findAllReceiptPlans(GetAllReceiptPlanCommand command,
-            Pageable pageable) {
+    public Page<ReceiptPlan> findAllReceiptPlans(GetAllReceiptPlanCommand command, Pageable pageable, LocalDate selectedDate) {
         return receiptPlanJpaRepository.findByConditions(
                 command.companyName(),
                 command.productName(),
+                command.receiptPlanCode(),
                 command.companyCode(),
                 command.receiptPlanStartDate(),
                 command.receiptPlanEndDate(),
                 command.productNumber(),
+                selectedDate,
                 pageable);
     }
 
