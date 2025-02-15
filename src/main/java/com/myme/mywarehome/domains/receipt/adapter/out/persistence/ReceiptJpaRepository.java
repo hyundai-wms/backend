@@ -47,4 +47,6 @@ public interface ReceiptJpaRepository extends JpaRepository<Receipt, Long> {
             Pageable pageable
     );
 
+    @Query("SELECT COUNT(r) FROM Receipt r WHERE r.receiptPlan.receiptPlanId = :receiptPlanId")
+    long countByReceiptPlanId(@Param("receiptPlanId") Long receiptPlanId);
 }

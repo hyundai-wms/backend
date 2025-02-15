@@ -13,6 +13,8 @@ import com.myme.mywarehome.domains.receipt.application.port.out.CreateReceiptPor
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReturnPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetOutboundProductPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPlanPort;
+import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPort;
+import com.myme.mywarehome.domains.receipt.application.port.out.GetReturnPort;
 import com.myme.mywarehome.domains.stock.application.domain.Stock;
 import com.myme.mywarehome.domains.stock.application.exception.StockCreationTimeoutException;
 import jakarta.transaction.Transactional;
@@ -20,8 +22,12 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -35,6 +41,8 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
     private final GetReceiptPlanPort getReceiptPlanPort;
     private final CreateReturnPort createReturnPort;
     private final GetOutboundProductPort getOutboundProductPort;
+    private final GetReceiptPort getReceiptPort;
+    private final GetReturnPort getReturnPort;
 
     @Override
     @Transactional
@@ -65,54 +73,87 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
     @Override
     @Transactional
     public void processBulk(ReceiptProcessBulkCommand command) {
-        // 1. 입고 예정 정보 가져오기
         List<ReceiptPlan> receiptPlanList = getReceiptPlanPort.findAllReceiptPlansByDate(command.selectedDate());
-
-        if (receiptPlanList.isEmpty()) {
-            return;
-        }
+        if (receiptPlanList.isEmpty()) return;
 
         List<Receipt> allReceipts = new ArrayList<>();
         List<Return> allReturns = new ArrayList<>();
 
-        // 2. 각 입고 예정건별 처리
         for (ReceiptPlan receiptPlan : receiptPlanList) {
-            // 이미 처리된 수량 확인
-            long currentProcessedCount = getOutboundProductPort.countByReceiptPlanId(receiptPlan.getReceiptPlanId());
-            if (currentProcessedCount >= receiptPlan.getReceiptPlanItemCount()) {
-                continue;  // 이미 처리된 건은 스킵
+            // 1. 기존 OutboundProduct ID들을 조회
+            List<String> existingIds = getOutboundProductPort.findOutboundProductIdsByReceiptPlanId(
+                    receiptPlan.getReceiptPlanId()
+            );
+
+            // 필요한 총 개수
+            int totalRequired = receiptPlan.getReceiptPlanItemCount();
+
+            // 이미 존재하는 ID들의 sequence 번호 추출
+            Set<Integer> usedSequences = existingIds.stream()
+                    .map(id -> Integer.parseInt(id.substring(id.lastIndexOf("-") + 1)))
+                    .collect(Collectors.toSet());
+
+            // 사용 가능한 sequence 번호들 찾기 (1부터 totalRequired까지 중에서)
+            List<Integer> availableSequences = IntStream.rangeClosed(1, totalRequired)
+                    .filter(i -> !usedSequences.contains(i))
+                    .boxed()
+                    .toList();
+
+            // 이미 처리된 개수가 필요 개수보다 많으면 스킵
+            if (existingIds.size() >= totalRequired) {
+                continue;
             }
 
-            String productNumber = receiptPlan.getProduct().getProductNumber();
-            int totalCount = receiptPlan.getReceiptPlanItemCount();
+            Map<String, Long> processedStatus = getProcessedStatusByReceiptPlanId(
+                    receiptPlan.getReceiptPlanId()
+            );
 
-            // 해당 상품의 반품률 확인 (없으면 0으로 처리)
+            // 목표 수치 계산
+            String productNumber = receiptPlan.getProduct().getProductNumber();
             double returnRate = command.productReturnRate().getOrDefault(productNumber, 0.0);
 
-            // 입고/반품 수량 계산
-            int returnCount = (int) (totalCount * (returnRate / 100));
-            int receiptCount = totalCount - returnCount;
+            int targetReturnCount = (int) (totalRequired * (returnRate / 100));
+            int targetReceiptCount = totalRequired - targetReturnCount;
 
-            // OutboundProduct 생성 및 각각의 Receipt/Return 생성
-            for (int i = 1; i <= totalCount; i++) {
-                String outboundProductId = receiptPlan.getReceiptPlanId() + "-" + i;
+            long currentReceiptCount = processedStatus.get("receiptCount");
+            long currentReturnCount = processedStatus.get("returnCount");
+
+            // 추가로 처리해야 할 개수 계산
+            int remainingReceiptNeeded = targetReceiptCount - (int)currentReceiptCount;
+            int remainingReturnNeeded = targetReturnCount - (int)currentReturnCount;
+
+            // 사용 가능한 sequence 개수 내에서 처리
+            int availableCount = availableSequences.size();
+            int additionalReceipts = Math.min(remainingReceiptNeeded, availableCount);
+            int additionalReturns = Math.min(
+                    remainingReturnNeeded,
+                    availableCount - additionalReceipts
+            );
+
+            // OutboundProduct 생성 및 처리
+            int processedThisRound = 0;
+            for (Integer seq : availableSequences) {
+                String outboundProductId = receiptPlan.getReceiptPlanId() + "-" + seq;
 
                 try {
                     outboundProductDomainService.createOutboundProductBulk(outboundProductId, receiptPlan);
 
-                    // i가 receiptCount 이하면 입고로, 초과하면 반품으로 처리
-                    if (i <= receiptCount) {
+                    if (processedThisRound < additionalReceipts) {
                         Receipt receipt = Receipt.builder()
                                 .receiptPlan(receiptPlan)
                                 .receiptDate(command.selectedDate())
                                 .build();
                         allReceipts.add(receipt);
-                    } else {
+                        processedThisRound++;
+                    } else if (processedThisRound < (additionalReceipts + additionalReturns)) {
                         Return returnEntity = Return.builder()
                                 .receiptPlan(receiptPlan)
                                 .returnDate(command.selectedDate())
                                 .build();
                         allReturns.add(returnEntity);
+                        processedThisRound++;
+                    } else {
+                        break;
                     }
                 } catch (Exception e) {
                     throw new ReceiptBulkProcessException();
@@ -120,7 +161,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
             }
         }
 
-        // 3. 입고 및 반품 데이터 저장
+        // 최종 저장 로직
         if (!allReturns.isEmpty()) {
             allReturns.forEach(createReturnPort::create);
         }
@@ -129,8 +170,22 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
             List<Receipt> createdReceipts = allReceipts.stream()
                     .map(createReceiptPort::create)
                     .toList();
-
             eventPublisher.publishEvent(new ReceiptBulkCreatedEvent(createdReceipts));
         }
     }
+
+    private Map<String, Long> getProcessedStatusByReceiptPlanId(Long receiptPlanId) {
+        // 전체 생성된 OutboundProduct 수
+        long totalProcessed = getOutboundProductPort.countByReceiptPlanId(receiptPlanId);
+        // 실제 입고/반품 처리된 수
+        long receiptCount = getReceiptPort.countByReceiptPlanId(receiptPlanId);
+        long returnCount = getReturnPort.countByReceiptPlanId(receiptPlanId);
+
+        return Map.of(
+                "totalProcessed", totalProcessed,
+                "receiptCount", receiptCount,
+                "returnCount", returnCount
+        );
+    }
 }
+

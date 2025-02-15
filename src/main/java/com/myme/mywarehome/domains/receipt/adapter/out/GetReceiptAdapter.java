@@ -34,4 +34,9 @@ public class GetReceiptAdapter implements GetReceiptPort {
                 pageable
         );
     }
+
+    @Override
+    public long countByReceiptPlanId(Long receiptPlanId) {
+        return receiptJpaRepository.countByReceiptPlanId(receiptPlanId);
+    }
 }
