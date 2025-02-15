@@ -2,9 +2,12 @@ package com.myme.mywarehome.domains.issue.adapter.in.web;
 
 import com.myme.mywarehome.domains.issue.adapter.in.web.request.GetAllIssueRequest;
 import com.myme.mywarehome.domains.issue.adapter.in.web.request.IssueProcessRequest;
+import com.myme.mywarehome.domains.issue.adapter.in.web.request.SelectedDateRequest;
 import com.myme.mywarehome.domains.issue.adapter.in.web.response.GetAllIssueResponse;
 import com.myme.mywarehome.domains.issue.adapter.in.web.response.IssueProcessResponse;
+import com.myme.mywarehome.domains.issue.adapter.in.web.response.TodayIssueResponse;
 import com.myme.mywarehome.domains.issue.application.port.in.GetAllIssueUseCase;
+import com.myme.mywarehome.domains.issue.application.port.in.GetTodayIssueUseCase;
 import com.myme.mywarehome.domains.issue.application.port.in.IssueProcessUseCase;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class IssueController {
     private final IssueProcessUseCase issueProcessUseCase;
     private final GetAllIssueUseCase getAllIssueUseCase;
+    private final GetTodayIssueUseCase getTodayIssueUseCase;
 
 
     @PostMapping("/{itemId}/items")
@@ -50,4 +54,17 @@ public class IssueController {
         );
 
     }
+
+    @GetMapping("/today")
+    public CommonResponse<TodayIssueResponse> getTodayIssues(
+            @Valid @RequestBody(required = false) SelectedDateRequest request,
+            @PageableDefault Pageable pageable
+            ) {
+        return CommonResponse.from(
+                TodayIssueResponse.from(
+                        getTodayIssueUseCase.getTodayIssue(SelectedDateRequest.toCommand(request), pageable)
+                )
+        );
+    }
+
 }
