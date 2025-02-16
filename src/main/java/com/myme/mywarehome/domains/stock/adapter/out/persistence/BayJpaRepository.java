@@ -1,10 +1,28 @@
 package com.myme.mywarehome.domains.stock.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.stock.application.domain.Bay;
+import com.myme.mywarehome.domains.stock.application.port.in.result.BayWithStockBin;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BayJpaRepository extends JpaRepository<Bay, Long> {
-
+    @Query("""
+        SELECT new com.myme.mywarehome.domains.stock.application.port.in.result.BayWithStockBin(
+            b.bayId,
+            b.bayNumber,
+            p.productNumber,
+            SUM(CASE WHEN s.stockId IS NULL THEN 0 ELSE 1 END)
+        )
+        FROM Bay b
+        LEFT JOIN b.product p
+        LEFT JOIN b.binList bin
+        LEFT JOIN bin.stock s
+        GROUP BY b.bayId, b.bayNumber, p.productNumber
+        ORDER BY b.bayId
+        """)
+    Page<BayWithStockBin> findAllBaysWithStockCount(Pageable pageable);
 }

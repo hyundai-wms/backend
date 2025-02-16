@@ -68,6 +68,15 @@ public class Stock extends BaseTimeEntity {
         }
     }
 
+    // 연결된 Bin 제거
+    public void releaseBin() {
+        if (this.bin != null) {
+            Bin tmpBin = this.bin;
+            this.bin = null;
+            tmpBin.connectWithStock(null);
+        }
+    }
+
     // 연결된 Issue 설정 + 양방향 연결
     public void assignIssue(Issue issue) {
         this.issue = issue;

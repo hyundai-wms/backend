@@ -1,9 +1,11 @@
 package com.myme.mywarehome.domains.stock.adapter.in.web;
 
 import com.myme.mywarehome.domains.stock.adapter.in.web.request.GetAllStockRequest;
+import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetAllStockLocationResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetAllStockResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetStockDetailResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetStockResponse;
+import com.myme.mywarehome.domains.stock.application.port.in.GetAllStockLocationUseCase;
 import com.myme.mywarehome.domains.stock.application.port.in.GetAllStockUseCase;
 import com.myme.mywarehome.domains.stock.application.port.in.GetStockUseCase;
 import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StockController {
     private final GetAllStockUseCase getAllStockUseCase;
     private final GetStockUseCase getStockUseCase;
+    private final GetAllStockLocationUseCase getAllStockLocationUseCase;
 
     @GetMapping
     public CommonResponse<GetAllStockResponse> getAllStock(
@@ -39,7 +42,7 @@ public class StockController {
         );
     }
 
-    @GetMapping("{productNumber}/details")
+    @GetMapping("/{productNumber}/details")
     public CommonResponse<GetStockResponse> getStock(
             @PathVariable("productNumber") String productNumber,
             @Valid @RequestBody(required = false) SelectedDateRequest selectedDateRequest,
@@ -49,6 +52,17 @@ public class StockController {
                 GetStockResponse.from(
                         getStockUseCase.getStockList(productNumber, pageable,
                                 SelectedDateRequest.toLocalDate(selectedDateRequest))
+                )
+        );
+    }
+
+    @GetMapping("/locations")
+    public CommonResponse<GetAllStockLocationResponse> getAllStockLocation(
+            @PageableDefault(size = 800) Pageable pageable
+    ) {
+        return CommonResponse.from(
+                GetAllStockLocationResponse.from(
+                        getAllStockLocationUseCase.getAllBayList(pageable)
                 )
         );
     }
