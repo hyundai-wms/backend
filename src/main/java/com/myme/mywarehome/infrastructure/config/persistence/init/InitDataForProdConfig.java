@@ -24,7 +24,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Profile("prod")
-public class InitDataForDevConfig implements CommandLineRunner {
+public class InitDataForProdConfig implements CommandLineRunner {
     private final CompanyJpaRepository companyJpaRepository;
     private final ProductJpaRepository productJpaRepository;
     private final IssuePlanJpaRepository issuePlanJpaRepository;
@@ -42,7 +42,7 @@ public class InitDataForDevConfig implements CommandLineRunner {
         List<Company> companies = new ArrayList<>();
 
         // Add in-house manufacturing company (ID: 1)
-        companies.add(createCompany(1, "자체생산업체", false, "자체생산"));
+        companies.add(createCompany(1, "자체생산", false, "자체생산"));
 
         // Add T1 companies
         List<String> t1Companies = Arrays.asList(
@@ -156,10 +156,10 @@ public class InitDataForDevConfig implements CommandLineRunner {
 
     private void initializeEngineProducts(List<Product> products, String engineType, String engineName, Map<String, Company> companyMap) {
         // Base engine
-        addProduct(products, "10000", engineType, engineName, "엔진 완성품", companyMap.get("자체생산업체"), 1, 6);
+        addProduct(products, "10000", engineType, engineName, engineName, companyMap.get("자체생산"), 1, 6);
 
         // 1. Cylinder Block Module
-        addProduct(products, "10100", engineType, engineName, "실린더 블록 모듈", companyMap.get("자체생산업체"), 1, 6); // 복합공정
+        addProduct(products, "10100", engineType, engineName, "실린더 블록 모듈", companyMap.get("자체생산"), 1, 6); // 복합공정
         addProduct(products, "10120", engineType, engineName, "실린더 블록", companyMap.get("포스코"), 1, 6); // 복합공정
         addProduct(products, "10130", engineType, engineName, "피스톤 모듈", companyMap.get("Mahle"), 4, 3); // 정밀가공
         addProduct(products, "10140", engineType, engineName, "커넥팅 로드 모듈", companyMap.get("Mahle"), 4, 3); // 정밀가공
@@ -171,7 +171,7 @@ public class InitDataForDevConfig implements CommandLineRunner {
         addProduct(products, "60000", engineType, engineName, "연료공급 모듈", fuelSupplyVendor, 1, 3); // 정밀가공
 
         // 3. Intake/Exhaust Module
-        addProduct(products, "50000", engineType, engineName, "흡배기 모듈", companyMap.get("자체생산업체"), 1, 3); // 정밀가공
+        addProduct(products, "50000", engineType, engineName, "흡배기 모듈", companyMap.get("자체생산"), 1, 3); // 정밀가공
         Company intakeVendor = getIntakeVendor(engineType, companyMap);
         addProduct(products, "50100", engineType, engineName, "흡기 매니폴드 모듈", intakeVendor, 1, 3); // 정밀가공
         Company exhaustVendor = getExhaustVendor(engineType, companyMap);
@@ -187,7 +187,7 @@ public class InitDataForDevConfig implements CommandLineRunner {
             // Gamma와 Theta는 각자의 EGR 모듈 사용
             addProduct(products, "50300", engineType, engineName, "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
         } else if (engineType.equals("03")) {
-            // Kappa 처리할 때만 공용 EGR 모듈 생성
+            // Kappa 처리할 때만 엔진 EGR 모듈 생성
             addProduct(products, "50300", "02", engineName, "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
         }
 
@@ -196,7 +196,7 @@ public class InitDataForDevConfig implements CommandLineRunner {
         addProduct(products, "70100", engineType, engineName, "점화 모듈", ignitionVendor, 1, 3);
 
         // 5. Cooling Module
-        addProduct(products, "40000", engineType, engineName, "냉각 모듈", companyMap.get("자체생산업체"), 1, 3);
+        addProduct(products, "40000", engineType, engineName, "냉각 모듈", companyMap.get("자체생산"), 1, 3);
         // Add engine-specific water pump only for Nu and Theta
         if (engineType.equals("05") || engineType.equals("06")) {
             addProduct(products, "40100", engineType, engineName, "워터펌프 어셈블리", companyMap.get("Aisin"), 1, 3);
@@ -215,7 +215,7 @@ public class InitDataForDevConfig implements CommandLineRunner {
         }
 
         // 6. Lubrication Module
-        addProduct(products, "30000", engineType, engineName, "윤활 모듈", companyMap.get("자체생산업체"), 1, 3);
+        addProduct(products, "30000", engineType, engineName, "윤활 모듈", companyMap.get("자체생산"), 1, 3);
         Company oilPumpVendor = engineType.equals("06") ? companyMap.get("한일고무") : companyMap.get("대원공업");
         addProduct(products, "30100", engineType, engineName, "오일펌프 모듈", oilPumpVendor, 1, 3);
         // Only add Theta-specific oil filter, common oil filter is created in createCommonParts
@@ -225,7 +225,7 @@ public class InitDataForDevConfig implements CommandLineRunner {
         addProduct(products, "30210", engineType, engineName, "오일팬", companyMap.get("신성씰테크"), 1, 1);
 
         // 7. Valvetrain Module
-        addProduct(products, "20000", engineType, engineName, "밸브트레인 모듈", companyMap.get("자체생산업체"), 1, 3);
+        addProduct(products, "20000", engineType, engineName, "밸브트레인 모듈", companyMap.get("자체생산"), 1, 3);
         addProduct(products, "20100", engineType, engineName, "캠샤프트 모듈", companyMap.get("BorgWarner"), 1, 3);
         addProduct(products, "20200", engineType, engineName, "밸브 모듈", companyMap.get("우진스프링"), 1, 3);
 
@@ -309,11 +309,11 @@ public class InitDataForDevConfig implements CommandLineRunner {
 
     private void createCommonParts(List<Product> products, Map<String, Company> companyMap) {
         // Common parts with engine type "01"
-        addProduct(products, "40100", "01", "Kappa/Gamma/Nu 공용", "워터펌프 어셈블리", companyMap.get("Aisin"), 1, 3); // 정밀가공
-        addProduct(products, "40210", "01", "Kappa/Gamma/Nu 공용", "서모스탯", companyMap.get("대원산업"), 1, 1); // 단순조립
-        addProduct(products, "40300", "01", "Kappa/Gamma/Nu 공용", "냉각수 호스 세트", companyMap.get("동아튜브"), 1, 1); // 단순조립
-        addProduct(products, "30310", "01", "Kappa/Gamma/Nu 공용", "오일 필터", companyMap.get("한국필터"), 1, 1); // 단순조립
-        addProduct(products, "20300", "01", "Kappa/Gamma/Nu 공용", "타이밍 모듈", companyMap.get("Continental"), 1, 3); // 정밀가공
+        addProduct(products, "40100", "01", "Kappa/Gamma/Nu 엔진", "워터펌프 어셈블리", companyMap.get("Aisin"), 1, 3); // 정밀가공
+        addProduct(products, "40210", "01", "Kappa/Gamma/Nu 엔진", "서모스탯", companyMap.get("대원산업"), 1, 1); // 단순조립
+        addProduct(products, "40300", "01", "Kappa/Gamma/Nu 엔진", "냉각수 호스 세트", companyMap.get("동아튜브"), 1, 1); // 단순조립
+        addProduct(products, "30310", "01", "Kappa/Gamma/Nu 엔진", "오일 필터", companyMap.get("한국필터"), 1, 1); // 단순조립
+        addProduct(products, "20300", "01", "Kappa/Gamma/Nu 엔진", "타이밍 모듈", companyMap.get("Continental"), 1, 3); // 정밀가공
     }
 
     private void initializeBins(List<Bay> bays) {
