@@ -9,7 +9,9 @@ import com.myme.mywarehome.domains.stock.adapter.out.persistence.BayJpaRepositor
 import com.myme.mywarehome.domains.stock.adapter.out.persistence.BinJpaRepository;
 import com.myme.mywarehome.domains.stock.application.domain.Bay;
 import com.myme.mywarehome.domains.stock.application.domain.Bin;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +20,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
-@Profile("prod")
-public class InitDataForProdConfig implements CommandLineRunner {
+@Profile("dev")
+public class InitDataForDevConfig implements CommandLineRunner {
     private final CompanyJpaRepository companyJpaRepository;
     private final ProductJpaRepository productJpaRepository;
     private final BinJpaRepository binJpaRepository;
@@ -111,7 +110,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
 
     private List<Bay> initializeBays(List<Product> products) {
         List<Bay> bays = new ArrayList<>();
-        final int TOTAL_BAYS = 3200;
+        final int TOTAL_BAYS = 160;
         final int PRODUCTS_COUNT = products.size();
 
         int baseAllocation = TOTAL_BAYS / PRODUCTS_COUNT;
@@ -129,8 +128,8 @@ public class InitDataForProdConfig implements CommandLineRunner {
             for (int i = 0; i < baysForThisProduct; i++) {
                 int currentPosition = totalBaysCreated + i;
                 String bayNumber = String.format("%c%c%02d",
-                        (char)('A' + (currentPosition / 520)),
-                        (char)('A' + ((currentPosition % 520) / 20)),
+                        (char)('A' + (currentPosition / 26)),
+                        (char)('A' + ((currentPosition % 26) / 20)),
                         (currentPosition % 20) + 1);
 
                 Bay bay = Bay.builder()
@@ -331,7 +330,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
         }
 
         // 검증
-        if (bins.size() != 32000) {  // 3200 * 10
+        if (bins.size() != 1600) {  // 160 * 10
             throw new IllegalStateException(
                     String.format("Expected 32000 bins but created %d", bins.size())
             );
