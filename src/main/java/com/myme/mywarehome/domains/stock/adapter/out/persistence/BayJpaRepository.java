@@ -54,8 +54,9 @@ public interface BayJpaRepository extends JpaRepository<Bay, Long> {
             "JOIN b.product p " +
             "JOIN p.company c " +
             "JOIN b.binList bin " +
-            "JOIN bin.stock s " +
-            "JOIN s.receipt r " +
-            "WHERE b.bayNumber = :bayNumber")
+            "LEFT JOIN bin.stock s " +
+            "LEFT JOIN s.receipt r " +
+            "WHERE b.bayNumber = :bayNumber " +
+            "ORDER BY bin.binId")
     List<BinInfoResult> findByBayNumber(@Param("bayNumber") String bayNumber);
 }
