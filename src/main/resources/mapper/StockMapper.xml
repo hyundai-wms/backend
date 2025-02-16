@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.myme.mywarehome.domains.stock.adapter.out.persistence.StockMybatisRepository">
+
+    <sql id="searchConditions">
+        <where>
+            <!-- 검색 그룹 (OR 조건) -->
+            <if test="command.companyName != null and command.companyName != '' or
+                      command.productName != null and command.productName != ''">
+                AND (
+                <if test="command.companyName != null and command.companyName != ''">
+                    c.company_name ILIKE '%' || #{command.companyName} || '%'
+                </if>
+                <if test="command.productName != null and command.productName != ''">
+                    <if test="command.companyName != null and command.companyName != ''">OR</if>
+                    p.product_name ILIKE '%' || #{command.productName} || '%'
+                </if>
+                )
+            </if>
+
+            <!-- 필터링 그룹 (AND 조건) -->
+            <if test="command.companyCode != null and command.companyCode != ''">
+                AND c.company_code ILIKE '%' || #{command.companyCode} || '%'
+            </if>
+            <if test="command.productNumber != null and command.productNumber != ''">
+                AND p.product_number ILIKE '%' || #{command.productNumber} || '%'
+            </if>
+            <if test="command.recentReceiptStartDate != null">
+                AND r.receipt_date <![CDATA[ >= ]]> #{command.recentReceiptStartDate}
+            </if>
+            <if test="command.recentReceiptEndDate != null">
+                AND r.receipt_date <![CDATA[ <= ]]> #{command.recentReceiptEndDate}
+            </if>
+            <if test="command.upcomingIssuePlanStartDate != null">
+                AND ip.issue_plan_date <![CDATA[ >= ]]> #{command.upcomingIssuePlanStartDate}
+            </if>
+            <if test="command.upcomingIssuePlanEndDate != null">
+                AND ip.issue_plan_date <![CDATA[ <= ]]> #{command.upcomingIssuePlanEndDate}
+            </if>
+        </where>
+    </sql>
+
+    <select id="findStockSummaryList" resultType="StockSummaryResult">
+        <!-- 최근(이미 지난) 입고 CTE -->
+        WITH LatestReceipts AS (
+        SELECT product_id, receipt_id
+        FROM (
+        SELECT rp.product_id, r.receipt_id,
+        ROW_NUMBER() OVER (PARTITION BY rp.product_id ORDER BY r.receipt_date DESC) as rn
+        FROM receipt_plans rp
+        LEFT JOIN receipts r ON r.receipt_plan_id = rp.receipt_plan_id
+        WHERE r.receipt_id IS NOT NULL
+        ) t
+        WHERE rn = 1
+        ),
+        <!-- 최근(아직 지나지 않은) 예정된 출고 예정 CTE -->
+        UpcomingIssuePlans AS (
+        SELECT product_id, issue_plan_id
+        FROM (
+        SELECT product_id, issue_plan_id,
+        ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY issue_plan_date) as rn
+        FROM issue_plans
+        WHERE issue_plan_date >= #{selectedDate}
+        ) t
+        WHERE rn = 1
+        ),
+        <!-- 연결된 재고(개수 세기) -->
+        ProductStocks AS (
+        SELECT
+        rp.product_id,
+        COUNT(CASE WHEN s.stock_id IS NOT NULL AND s.issue_id IS NULL THEN 1 END) as stock_count
+        FROM receipt_plans rp
+        LEFT JOIN receipts r ON r.receipt_plan_id = rp.receipt_plan_id
+        LEFT JOIN stocks s ON s.receipt_id = r.receipt_id
+        GROUP BY rp.product_id
+        )
+        SELECT
+        p.product_number,
+        p.product_name,
+        COALESCE(ps.stock_count, 0),
+        CASE
+        WHEN MAX(s.last_event_type) = 'RECEIPT' THEN 'UP'
+        WHEN MAX(s.last_event_type) = 'ISSUE' THEN 'DOWN'
+        ELSE 'NONE'
+        END as total_item_count_trend,
+        p.each_count,
+        p.safe_item_count,
+        MAX(r.receipt_id) as recent_receipt_id,
+        MAX(r.receipt_code) as recent_receipt_code,
+        MAX(r.receipt_date) as recent_receipt_date,
+        MAX(ip.issue_plan_id) as upcoming_issue_plan_id,
+        MAX(ip.issue_plan_code) as upcoming_issue_plan_code,
+        MAX(ip.issue_plan_date) as upcoming_issue_plan_date,
+        c.company_id,
+        c.company_code,
+        c.company_name,
+        CASE
+        WHEN COUNT(DISTINCT b.bay_number) > 1
+        THEN MIN(b.bay_number) || ' 외 ' || (COUNT(DISTINCT b.bay_number) - 1) || '개'
+        ELSE MIN(b.bay_number)
+        END as bay_number_summary,
+        p.created_at,
+        p.updated_at
+        FROM products p
+        LEFT JOIN companies c ON p.company_id = c.company_id
+        LEFT JOIN bays b ON b.product_id = p.product_id
+        LEFT JOIN ProductStocks ps ON ps.product_id = p.product_id
+        LEFT JOIN LatestReceipts lr ON lr.product_id = p.product_id
+        LEFT JOIN receipts r ON r.receipt_id = lr.receipt_id
+        LEFT JOIN UpcomingIssuePlans uip ON uip.product_id = p.product_id
+        LEFT JOIN issue_plans ip ON ip.issue_plan_id = uip.issue_plan_id
+        LEFT JOIN stocks s ON s.receipt_id = r.receipt_id
+        <include refid="searchConditions"/>
+        GROUP BY
+        p.product_id,
+        p.product_number,
+        p.product_name,
+        p.each_count,
+        p.safe_item_count,
+        c.company_id,
+        c.company_code,
+        c.company_name,
+        p.created_at,
+        p.updated_at,
+        ps.stock_count
+        ORDER BY p.product_number
+        OFFSET #{pageable.offset} ROWS
+        FETCH FIRST #{pageable.pageSize} ROWS ONLY
+    </select>
+
+    <select id="countStockSummaries" resultType="long">
+        SELECT COUNT(DISTINCT p.product_id)
+        FROM products p
+        LEFT JOIN companies c ON p.company_id = c.company_id
+        LEFT JOIN bays b ON b.product_id = p.product_id
+        LEFT JOIN receipt_plans rp ON rp.product_id = p.product_id
+        LEFT JOIN receipts r ON r.receipt_plan_id = rp.receipt_plan_id
+        LEFT JOIN issue_plans ip ON ip.product_id = p.product_id
+        <include refid="searchConditions"/>
+    </select>
+</mapper>

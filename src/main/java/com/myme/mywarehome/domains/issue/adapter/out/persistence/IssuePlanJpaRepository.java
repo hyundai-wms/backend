@@ -2,6 +2,9 @@ package com.myme.mywarehome.domains.issue.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import java.time.LocalDate;
+import java.util.Optional;
+
+import com.myme.mywarehome.domains.issue.application.port.in.result.TodayIssueResult;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,4 +40,33 @@ public interface IssuePlanJpaRepository extends JpaRepository<IssuePlan, Long> {
             @Param("productNumber") String productNumber,
             @Param("issuePlanCode") String issuePlanCode,
             Pageable pageable);
+
+
+    @EntityGraph(attributePaths = {"product", "product.company"})
+    @Query("""
+SELECT new com.myme.mywarehome.domains.issue.application.port.in.result.TodayIssueResult(
+    ip.issuePlanId,
+    ip.issuePlanCode,
+    ip.issuePlanDate,
+    CAST(COALESCE((SELECT COUNT(DISTINCT i2.issueId) FROM Issue i2 WHERE i2.issuePlan = ip), 0) AS long),
+    CAST(ip.issuePlanItemCount AS long),
+    CASE
+        WHEN COALESCE((SELECT COUNT(DISTINCT i2.issueId) FROM Issue i2 WHERE i2.issuePlan = ip), 0) = 0 
+        THEN 'NOT_STARTED'
+        WHEN COALESCE((SELECT COUNT(DISTINCT i2.issueId) FROM Issue i2 WHERE i2.issuePlan = ip), 0) < ip.issuePlanItemCount 
+        THEN 'PROCESSING'
+        ELSE 'DONE'
+    END,
+    ip.product.productNumber,
+    ip.product.productName,
+    ip.product.company.companyId,
+    ip.product.company.companyCode,
+    ip.product.company.companyName,
+    ip.createdAt,
+    ip.updatedAt
+)
+FROM IssuePlan ip
+WHERE ip.issuePlanDate >= :selectedDate
+""")
+    Page<TodayIssueResult> findTodayIssues(LocalDate selectedDate, Pageable pageable);
 }

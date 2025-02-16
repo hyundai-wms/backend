@@ -162,6 +162,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(AsyncException.class)
+    protected void handleAsyncException(AsyncException e) {
+        // AsyncExceptionHandler가 처리
+        throw e;
+    }
+
     // 9. 나머지 모든 예외
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ErrorResponse> handleException(Exception e) {

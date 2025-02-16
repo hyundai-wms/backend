@@ -39,14 +39,19 @@ public enum ErrorCode {
     DUPLICATED_OUTBOUND_PRODUCT(409, "R003", "해당 납품된 물품은 이미 등록되었습니다."),
     OUTBOUND_PRODUCT_ID_PARSE_FAILED(400, "R004", "outboundProductId를 파싱할 수 없습니다."),
     RECEIPT_PLAN_ITEM_CAPACITY_EXCEEDED(422, "R005", "입고 처리 가능한 용량을 초과하였습니다."),
+    RECEIPT_BULK_PROCESS_FAILED(500, "R006", "알 수 없는 이유로 입고 Bulk 처리 작업이 실패하였습니다."),
 
     // Issue
     ISSUE_PLAN_NOT_FOUND(404, "I001", "출고 예정 정보를 찾을 수 없습니다."),
     ISSUE_PLAN_EXCEED_STOCK(404, "I002", "출고 예정 수량이 현재 재고량보다 많습니다."),
+    ISSUE_PLAN_ITEM_COUNT_EXCEEDED(422, "I003", "출고 예정 수량을 초과하였습니다."),
 
     // Stock, Bay, Bin
     NO_AVAILABLE_BIN(409, "S001", "사용가능한 BIN이 없습니다."),
     STOCK_CREATION_TIMEOUT(408, "S002", "재고를 생성 중 시간초과가 발생하였습니다."),
+    STOCK_ALREADY_ISSUED(409, "I004", "이미 출고 처리된 재고입니다."),
+    STOCK_ASSIGN_TIMEOUT(408, "S003", "재고 할당 처리 시간이 초과되었습니다."),
+    STOCK_NOT_FOUND(404, "S004", "해당 재고를 찾을 수 없습니다."),
     ;
 
 

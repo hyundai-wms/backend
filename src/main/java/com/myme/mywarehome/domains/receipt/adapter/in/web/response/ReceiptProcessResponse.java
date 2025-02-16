@@ -4,7 +4,7 @@ import com.myme.mywarehome.domains.stock.application.domain.Stock;
 import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import java.time.LocalDateTime;
 
-public record ReceiptProcessedResponse(
+public record ReceiptProcessResponse(
         Long itemId,
         String productNumber,
         String productName,
@@ -25,8 +25,8 @@ public record ReceiptProcessedResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static ReceiptProcessedResponse from(Stock stock) {
-        return new ReceiptProcessedResponse(
+    public static ReceiptProcessResponse from(Stock stock) {
+        return new ReceiptProcessResponse(
                 stock.getStockId(),
                 stock.getReceipt().getReceiptPlan().getProduct().getProductNumber(),
                 stock.getReceipt().getReceiptPlan().getProduct().getProductName(),

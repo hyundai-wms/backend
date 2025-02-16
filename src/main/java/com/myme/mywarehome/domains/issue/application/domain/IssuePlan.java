@@ -53,9 +53,9 @@ public class IssuePlan extends BaseTimeEntity {
         this.product = product;
     }
 
-
+    // todo: 출고 update itemcount 수정하기 + companycode 빼기
     // issueplan 정보 수정
-    public void changeIssuePlanItemCount(Integer IssuePlanItemCount) {
+    public void changeIssuePlanItemCount(Integer issuePlanItemCount) {
         if(issuePlanItemCount > 0) {
             this.issuePlanItemCount = issuePlanItemCount;
         }
