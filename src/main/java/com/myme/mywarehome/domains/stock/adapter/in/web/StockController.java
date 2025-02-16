@@ -3,7 +3,6 @@ package com.myme.mywarehome.domains.stock.adapter.in.web;
 import com.myme.mywarehome.domains.stock.adapter.in.web.request.GetAllStockRequest;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetAllStockLocationResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetAllStockResponse;
-import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetStockDetailResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetStockLocationByProductNumberResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetStockResponse;
 import com.myme.mywarehome.domains.stock.application.port.in.GetAllStockLocationUseCase;
