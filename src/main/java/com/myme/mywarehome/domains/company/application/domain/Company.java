@@ -29,12 +29,13 @@ public class Company extends BaseTimeEntity {
     private String companyPhone;
     private String companyEmail;
     private Boolean isVendor;
+    private String tier;
 
     @OneToMany(mappedBy = "company")
     private List<Product> productList = new ArrayList<>();
 
     @Builder
-    private Company(Long companyId, String companyCode, String companyName, String companyFax, String companyPhone, String companyEmail, Boolean isVendor) {
+    private Company(Long companyId, String companyCode, String companyName, String companyFax, String companyPhone, String companyEmail, Boolean isVendor, String tier) {
         this.companyId = companyId;
         this.companyCode = companyCode;
         this.companyName = companyName;
@@ -42,6 +43,7 @@ public class Company extends BaseTimeEntity {
         this.companyPhone = companyPhone;
         this.companyEmail = companyEmail;
         this.isVendor = isVendor;
+        this.tier = tier;
     }
 
 
