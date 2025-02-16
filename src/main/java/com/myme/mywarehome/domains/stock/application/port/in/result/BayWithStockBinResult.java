@@ -1,6 +1,6 @@
 package com.myme.mywarehome.domains.stock.application.port.in.result;
 
-public record BayWithStockBin(
+public record BayWithStockBinResult(
         Long bayId,
         String bayNumber,
         String productNumber,

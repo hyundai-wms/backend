@@ -1,6 +1,6 @@
 package com.myme.mywarehome.domains.stock.adapter.in.web.response;
 
-import com.myme.mywarehome.domains.stock.application.port.in.result.BayWithStockBin;
+import com.myme.mywarehome.domains.stock.application.port.in.result.BayWithStockBinResult;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -15,11 +15,11 @@ public record GetAllStockLocationResponse(
         Boolean isFirst,
         Boolean isLast
 ) {
-    public static GetAllStockLocationResponse from(Page<BayWithStockBin> bayWithStockBinList) {
+    public static GetAllStockLocationResponse from(Page<BayWithStockBinResult> bayWithStockBinList) {
         return new GetAllStockLocationResponse(
                 bayWithStockBinList.getContent().stream()
                         .collect(Collectors.toMap(
-                                BayWithStockBin::bayId,
+                                BayWithStockBinResult::bayId,
                                 GetStockLocationResponse::from,
                                 (a,b) -> b,
                                 TreeMap::new
