@@ -4,11 +4,14 @@ import com.myme.mywarehome.domains.stock.adapter.in.web.request.GetAllStockReque
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetAllStockLocationResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetAllStockResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetBayResponse;
+import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetSpecificStockResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetStockLocationByProductNumberResponse;
 import com.myme.mywarehome.domains.stock.adapter.in.web.response.GetStockResponse;
+import com.myme.mywarehome.domains.stock.application.exception.StockNotFoundException;
 import com.myme.mywarehome.domains.stock.application.port.in.GetAllStockLocationUseCase;
 import com.myme.mywarehome.domains.stock.application.port.in.GetAllStockUseCase;
 import com.myme.mywarehome.domains.stock.application.port.in.GetBayUseCase;
+import com.myme.mywarehome.domains.stock.application.port.in.GetSpecificStockUseCase;
 import com.myme.mywarehome.domains.stock.application.port.in.GetStockLocationUseCase;
 import com.myme.mywarehome.domains.stock.application.port.in.GetStockUseCase;
 import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
@@ -32,6 +35,7 @@ public class StockController {
     private final GetStockUseCase getStockUseCase;
     private final GetAllStockLocationUseCase getAllStockLocationUseCase;
     private final GetStockLocationUseCase getStockLocationUseCase;
+    private final GetSpecificStockUseCase getSpecificStockUseCase;
     private final GetBayUseCase getBayUseCase;
 
     @GetMapping
@@ -82,6 +86,18 @@ public class StockController {
                 )
         );
     }
+
+    @GetMapping("/items/{itemId}")
+    public CommonResponse<GetSpecificStockResponse> getSpecificStock(
+            @PathVariable("itemId") Long stockId
+    ) {
+        return CommonResponse.from(
+                getSpecificStockUseCase.getSpecificStock(stockId)
+                        .map(GetSpecificStockResponse::from)
+                        .orElseThrow(StockNotFoundException::new)
+        );
+    }
+
 
     @GetMapping("/bays/{bayNumber}")
     public CommonResponse<GetBayResponse> getBayByBayNumber(
