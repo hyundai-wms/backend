@@ -61,11 +61,11 @@ public class ReceiptController {
     @PostMapping("/{outboundProductId}/items")
     public CommonResponse<ReceiptProcessResponse> receiptProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody(required = false) SelectedDateRequest request
+            @SelectedDate LocalDate selectedDate
     ) {
         return CommonResponse.from(
                 ReceiptProcessResponse.from(
-                        receiptProcessedUseCase.process(outboundProductId, SelectedDateRequest.toLocalDate(request))
+                        receiptProcessedUseCase.process(outboundProductId, selectedDate)
                 )
         );
     }
@@ -73,17 +73,18 @@ public class ReceiptController {
     @PostMapping("/{outboundProductId}/returns")
     public CommonResponse<Void> returnProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody(required = false) SelectedDateRequest request
+            @SelectedDate LocalDate selectedDate
     ) {
-        receiptReturnUseCase.process(outboundProductId, SelectedDateRequest.toLocalDate(request));
+        receiptReturnUseCase.process(outboundProductId, selectedDate);
         return CommonResponse.empty();
     }
 
     @PostMapping("/complete")
     public CommonResponse<Void> processCompleted(
-            @Valid @RequestBody ReceiptProcessCompleteRequest request
+            @Valid @RequestBody ReceiptProcessCompleteRequest request,
+            @SelectedDate LocalDate selectedDate
     ) {
-        receiptProcessedUseCase.processBulk(request.toCommand());
+        receiptProcessedUseCase.processBulk(request.toCommand(), selectedDate);
         return CommonResponse.empty();
     }
 }

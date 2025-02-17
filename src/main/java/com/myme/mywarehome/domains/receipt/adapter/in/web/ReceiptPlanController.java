@@ -10,7 +10,10 @@ import com.myme.mywarehome.domains.receipt.application.port.in.*;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
 import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
+import com.myme.mywarehome.infrastructure.config.resolver.SelectedDate;
 import jakarta.validation.Valid;
+
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -38,11 +41,11 @@ public class ReceiptPlanController {
     public CommonResponse<GetAllReceiptPlanResponse> getAllReceiptPlans(
             @Valid GetAllReceiptPlanRequest request,
             @PageableDefault Pageable pageable,
-            @Valid @RequestBody(required = false) SelectedDateRequest selectedDateRequest
-    ) {
+            @SelectedDate LocalDate selectedDate
+            ) {
         return CommonResponse.from(
                 GetAllReceiptPlanResponse.from(
-                        getAllReceiptPlanUseCase.getAllReceiptPlan(request.toCommand(), pageable, SelectedDateRequest.toLocalDate(selectedDateRequest))
+                        getAllReceiptPlanUseCase.getAllReceiptPlan(request.toCommand(), pageable, selectedDate)
                 )
         );
     }
