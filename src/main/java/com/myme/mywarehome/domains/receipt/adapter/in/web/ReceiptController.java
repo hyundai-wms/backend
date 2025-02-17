@@ -9,7 +9,6 @@ import com.myme.mywarehome.domains.receipt.application.port.in.GetAllReceiptUseC
 import com.myme.mywarehome.domains.receipt.application.port.in.GetTodayReceiptUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
-import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import com.myme.mywarehome.infrastructure.config.resolver.SelectedDate;
 import jakarta.validation.Valid;
@@ -61,11 +60,11 @@ public class ReceiptController {
     @PostMapping("/{outboundProductId}/items")
     public CommonResponse<ReceiptProcessResponse> receiptProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody(required = false) SelectedDateRequest request
+            @SelectedDate LocalDate selectedDate
     ) {
         return CommonResponse.from(
                 ReceiptProcessResponse.from(
-                        receiptProcessedUseCase.process(outboundProductId, SelectedDateRequest.toLocalDate(request))
+                        receiptProcessedUseCase.process(outboundProductId, selectedDate)
                 )
         );
     }
@@ -73,17 +72,18 @@ public class ReceiptController {
     @PostMapping("/{outboundProductId}/returns")
     public CommonResponse<Void> returnProcessed(
             @PathVariable("outboundProductId") String outboundProductId,
-            @Valid @RequestBody(required = false) SelectedDateRequest request
+            @SelectedDate LocalDate selectedDate
     ) {
-        receiptReturnUseCase.process(outboundProductId, SelectedDateRequest.toLocalDate(request));
+        receiptReturnUseCase.process(outboundProductId, selectedDate);
         return CommonResponse.empty();
     }
 
     @PostMapping("/complete")
     public CommonResponse<Void> processCompleted(
-            @Valid @RequestBody ReceiptProcessCompleteRequest request
+            @Valid @RequestBody ReceiptProcessCompleteRequest request,
+            @SelectedDate LocalDate selectedDate
     ) {
-        receiptProcessedUseCase.processBulk(request.toCommand());
+        receiptProcessedUseCase.processBulk(request.toCommand(), selectedDate);
         return CommonResponse.empty();
     }
 }

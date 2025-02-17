@@ -16,6 +16,7 @@ import com.myme.mywarehome.domains.stock.application.port.in.GetStockLocationUse
 import com.myme.mywarehome.domains.stock.application.port.in.GetStockUseCase;
 import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
+import com.myme.mywarehome.infrastructure.config.resolver.SelectedDate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/v1/storages/inventories")
@@ -40,13 +43,13 @@ public class StockController {
 
     @GetMapping
     public CommonResponse<GetAllStockResponse> getAllStock(
-        @Valid GetAllStockRequest request,
-        @PageableDefault(sort = "productNumber", direction = Direction.ASC) Pageable pageable,
-        @Valid @RequestBody(required = false) SelectedDateRequest selectedDateRequest
-    ) {
+            @Valid GetAllStockRequest request,
+            @PageableDefault(sort = "productNumber", direction = Direction.ASC) Pageable pageable,
+            @SelectedDate LocalDate selectedDate
+            ) {
         return CommonResponse.from(
                 GetAllStockResponse.from(
-                        getAllStockUseCase.getAllStockList(request.toCommand(), pageable, SelectedDateRequest.toLocalDate(selectedDateRequest))
+                        getAllStockUseCase.getAllStockList(request.toCommand(), pageable, selectedDate)
                 )
         );
     }
@@ -54,13 +57,12 @@ public class StockController {
     @GetMapping("/{productNumber}/details")
     public CommonResponse<GetStockResponse> getStock(
             @PathVariable("productNumber") String productNumber,
-            @Valid @RequestBody(required = false) SelectedDateRequest selectedDateRequest,
+            @SelectedDate LocalDate selectedDate,
             @PageableDefault Pageable pageable
     ) {
         return CommonResponse.from(
                 GetStockResponse.from(
-                        getStockUseCase.getStockList(productNumber, pageable,
-                                SelectedDateRequest.toLocalDate(selectedDateRequest))
+                        getStockUseCase.getStockList(productNumber, pageable, selectedDate)
                 )
         );
     }

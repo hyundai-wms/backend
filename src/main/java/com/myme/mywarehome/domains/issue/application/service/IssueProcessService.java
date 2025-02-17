@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -31,7 +32,7 @@ public class IssueProcessService implements IssueProcessUseCase {
 
     @Override
     @Transactional
-    public Issue process(Long stockId, IssueProcessCommand command) {
+    public Issue process(Long stockId, IssueProcessCommand command, LocalDate selectedDate) {
         // 1. 해당 물품이 이미 출고 되었는지 확인
         // 주어진 stockId에 해당하는 Issue 엔티티가 존재하면 true, 없으면 false를 반환
         if (getIssuePort.existsByStockId(stockId)) {
@@ -53,7 +54,7 @@ public class IssueProcessService implements IssueProcessUseCase {
         Issue issue = Issue.builder()
                 .issuePlan(issuePlan)
                 .product(issuePlan.getProduct())
-                .issueDate(command.selectedDate())
+                .issueDate(selectedDate)
                 .build();
 
         Issue createdIssue = createIssuePort.create(issue);
