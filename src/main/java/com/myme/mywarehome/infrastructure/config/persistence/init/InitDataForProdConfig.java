@@ -3,6 +3,8 @@ package com.myme.mywarehome.infrastructure.config.persistence.init;
 import com.myme.mywarehome.domains.company.adapter.out.persistence.CompanyJpaRepository;
 import com.myme.mywarehome.domains.company.application.domain.Company;
 import com.myme.mywarehome.domains.issue.adapter.out.persistence.IssuePlanJpaRepository;
+import com.myme.mywarehome.domains.mrp.adapter.out.persistence.BomTreeJpaRepository;
+import com.myme.mywarehome.domains.mrp.application.domain.BomTree;
 import com.myme.mywarehome.domains.product.adapter.out.persistence.ProductJpaRepository;
 import com.myme.mywarehome.domains.product.application.domain.Product;
 import com.myme.mywarehome.domains.stock.adapter.out.persistence.BayJpaRepository;
@@ -29,6 +31,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
     private final ProductJpaRepository productJpaRepository;
     private final BinJpaRepository binJpaRepository;
     private final BayJpaRepository bayJpaRepository;
+    private final BomTreeJpaRepository bomTreeJpaRepository;
 
     @Override
     @Transactional
@@ -88,12 +91,13 @@ public class InitDataForProdConfig implements CommandLineRunner {
         List<Product> savedProducts = productJpaRepository.saveAll(products);
 
         // 3. Bay 초기화
-        //initializeBays(savedProducts);
-
         List<Bay> savedBays = bayJpaRepository.saveAll(initializeBays(savedProducts));
 
-        // Bin 초기화 추가
+        // 4. Bin 초기화 추가
         initializeBins(savedBays);
+
+        // 5. BOM 초기화
+        initializeBomTrees(savedProducts);
 
     }
 
@@ -360,6 +364,177 @@ public class InitDataForProdConfig implements CommandLineRunner {
         }
 
         binJpaRepository.saveAll(bins);
+    }
+
+    private void initializeBomTrees(List<Product> products) {
+        List<BomTree> bomTrees = new ArrayList<>();
+        Map<String, Product> productMap = products.stream()
+                .collect(Collectors.toMap(Product::getProductNumber, product -> product));
+
+        // Kappa 엔진 BOM 초기화 (엔진타입: 03)
+        initializeEngineBom(bomTrees, productMap, "03");
+
+        // Gamma 엔진 BOM 초기화 (엔진타입: 04)
+        initializeEngineBom(bomTrees, productMap, "04");
+
+        // Nu 엔진 BOM 초기화 (엔진타입: 05)
+        initializeEngineBom(bomTrees, productMap, "05");
+
+        // Theta 엔진 BOM 초기화 (엔진타입: 06)
+        initializeEngineBom(bomTrees, productMap, "06");
+
+        bomTreeJpaRepository.saveAll(bomTrees);
+    }
+
+    private void initializeEngineBom(List<BomTree> bomTrees, Map<String, Product> productMap, String engineType) {
+        // 0depth: 엔진 완성품 (기준이 되는 parent)
+        Product engineProduct = productMap.get("10000-" + engineType + "P00");
+
+        if (engineProduct == null) {
+            throw new IllegalStateException("Engine product not found: 10000-" + engineType + "P00");
+        }
+
+        // 1depth: 주요 모듈들과 엔진의 관계 설정
+        String[][] firstDepthModules = {
+                {"10100", "1"}, // 실린더 블록 모듈
+                {"60000", "1"}, // 연료공급 모듈
+                {"50000", "1"}, // 흡배기 모듈
+                {"70100", "1"}, // 점화 모듈
+                {"40000", "1"}, // 냉각 모듈
+                {"30000", "1"}, // 윤활 모듈
+                {"20000", "1"}  // 밸브트레인 모듈
+        };
+
+        // 1depth 모듈들을 엔진에 연결
+        for (String[] module : firstDepthModules) {
+            String productNumber = module[0] + "-" + engineType + "P00";
+            Product moduleProduct = productMap.get(productNumber);
+
+            if (moduleProduct != null) {
+                bomTrees.add(BomTree.builder()
+                        .parentProduct(engineProduct)
+                        .childProduct(moduleProduct)
+                        .childCompositionRatio(Integer.parseInt(module[1]))
+                        .build());
+            }
+        }
+
+        // 2depth: 각 모듈의 하위 부품 관계 설정
+        // 실린더 블록 모듈의 하위 부품
+        Product cylinderBlockModule = productMap.get("10100-" + engineType + "P00");
+        if (cylinderBlockModule != null) {
+            addModuleComponents(bomTrees, productMap, cylinderBlockModule, engineType, new String[][]{
+                    {"10120", "1"}, // 실린더 블록
+                    {"10130", "4"}, // 피스톤 모듈
+                    {"10140", "4"}, // 커넥팅 로드 모듈
+                    {"10150", "1"}, // 크랭크샤프트 모듈
+                    {"10200", "1"}  // 실린더 헤드 모듈
+            });
+        }
+
+        // 흡배기 모듈의 하위 부품
+        Product intakeExhaustModule = productMap.get("50000-" + engineType + "P00");
+        if (intakeExhaustModule != null) {
+            List<String[]> components = new ArrayList<>();
+            components.add(new String[]{"50100", "1"}); // 흡기 매니폴드 모듈
+
+            if (engineType.equals("06") || engineType.equals("04")) {
+                components.add(new String[]{"50400", "1"}); // 터보차저 모듈
+            }
+
+            components.add(new String[]{"50200", "1"}); // 배기 매니폴드 모듈
+
+            // EGR 모듈 처리
+            if (engineType.equals("06") || engineType.equals("04")) {
+                components.add(new String[]{"50300", "1", engineType}); // 전용 EGR
+            } else if (engineType.equals("03") || engineType.equals("05")) {
+                components.add(new String[]{"50300", "1", "02"}); // 공용 EGR
+            }
+
+            addModuleComponents(bomTrees, productMap, intakeExhaustModule, engineType,
+                    components.toArray(new String[0][]));
+        }
+
+        // 냉각 모듈의 하위 부품
+        Product coolingModule = productMap.get("40000-" + engineType + "P00");
+        if (coolingModule != null) {
+            List<String[]> components = new ArrayList<>();
+
+            // 엔진별 워터펌프 처리
+            if (engineType.equals("05") || engineType.equals("06")) {
+                components.add(new String[]{"40100", "1", engineType}); // 전용 워터펌프
+            } else {
+                components.add(new String[]{"40100", "1", "01"}); // 공용 워터펌프
+            }
+
+            // 서모스탯과 냉각수 호스 처리
+            if (engineType.equals("06")) {
+                components.add(new String[]{"40210", "1", "06"}); // Theta 전용 서모스탯
+                components.add(new String[]{"40300", "1", "06"}); // Theta 전용 호스
+                components.add(new String[]{"40400", "1"}); // 보조 냉각 모듈
+            } else {
+                components.add(new String[]{"40210", "1", "01"}); // 공용 서모스탯
+                components.add(new String[]{"40300", "1", engineType.equals("04") ? "04" : "01"}); // 호스
+            }
+
+            addModuleComponents(bomTrees, productMap, coolingModule, engineType,
+                    components.toArray(new String[0][]));
+        }
+
+        // 윤활 모듈의 하위 부품
+        Product lubricationModule = productMap.get("30000-" + engineType + "P00");
+        if (lubricationModule != null) {
+            List<String[]> components = new ArrayList<>();
+            components.add(new String[]{"30100", "1"}); // 오일펌프 모듈
+
+            // 오일 필터 처리
+            if (engineType.equals("06")) {
+                components.add(new String[]{"30310", "1", "06"}); // Theta 전용 필터
+            } else {
+                components.add(new String[]{"30310", "1", "01"}); // 공용 필터
+            }
+
+            components.add(new String[]{"30210", "1"}); // 오일팬
+
+            addModuleComponents(bomTrees, productMap, lubricationModule, engineType,
+                    components.toArray(new String[0][]));
+        }
+
+        // 밸브트레인 모듈의 하위 부품
+        Product valvetrainModule = productMap.get("20000-" + engineType + "P00");
+        if (valvetrainModule != null) {
+            List<String[]> components = new ArrayList<>();
+            components.add(new String[]{"20100", "1"}); // 캠샤프트 모듈
+            components.add(new String[]{"20200", "1"}); // 밸브 모듈
+
+            // 타이밍 모듈 처리
+            if (engineType.equals("06")) {
+                components.add(new String[]{"20300", "1", "06"}); // Theta 전용 타이밍 모듈
+            } else {
+                components.add(new String[]{"20300", "1", "01"}); // 공용 타이밍 모듈
+            }
+
+            addModuleComponents(bomTrees, productMap, valvetrainModule, engineType,
+                    components.toArray(new String[0][]));
+        }
+    }
+
+    private void addModuleComponents(List<BomTree> bomTrees, Map<String, Product> productMap,
+                                     Product parentModule, String engineType, String[][] components) {
+        for (String[] component : components) {
+            String basePartNum = component[0];
+            String partEngineType = component.length > 2 ? component[2] : engineType;
+            String productNumber = basePartNum + "-" + partEngineType + "P00";
+
+            Product componentProduct = productMap.get(productNumber);
+            if (componentProduct != null) {
+                bomTrees.add(BomTree.builder()
+                        .parentProduct(parentModule)
+                        .childProduct(componentProduct)
+                        .childCompositionRatio(Integer.parseInt(component[1]))
+                        .build());
+            }
+        }
     }
 
 }
