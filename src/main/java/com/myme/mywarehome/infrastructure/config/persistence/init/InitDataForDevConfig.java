@@ -234,12 +234,35 @@ public class InitDataForDevConfig implements CommandLineRunner {
     }
 
     private void addProduct(List<Product> products, String basePartNum, String engineType, String engineName,
-            String productName, Company company, int eachCount, int leadTime) {
+                            String productName, Company company, int bomQuantity, int leadTime) {
+
+        // BOM depth에 따른 보관 수량 결정
+        int eachCount;
+
+        // 1depth 모듈의 base part number 리스트
+        List<String> firstDepthModules = Arrays.asList(
+                "10100", // 실린더 블록 모듈
+                "60000", // 연료공급 모듈
+                "50000", // 흡배기 모듈
+                "70100", // 점화 모듈
+                "40000", // 냉각 모듈
+                "30000", // 윤활 모듈
+                "20000"  // 밸브트레인 모듈
+        );
+
+        if (basePartNum.equals("10000")) {  // 0 depth (완성 엔진)
+            eachCount = 25;
+        } else if (firstDepthModules.contains(basePartNum)) {  // 1 depth (주요 모듈)
+            eachCount = 200;
+        } else {  // 2 depth (세부 부품)
+            eachCount = 1000;
+        }
+
         Product product = Product.builder()
                 .productNumber(basePartNum + "-" + engineType + "P00")
                 .productName(productName)
                 .eachCount(eachCount)
-                .safeItemCount(0) // safe_item_count를 0으로 설정
+                .safeItemCount(0)
                 .leadTime(leadTime)
                 .applicableEngine(engineName)
                 .company(company)
