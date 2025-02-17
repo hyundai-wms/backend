@@ -52,6 +52,11 @@ public class StringHelper {
             return String.format("IR" + ID_FORMAT, id);
         }
 
+        // InventoryRecordItem 코드 생성 (II + 8자리 숫자)
+        public static String generateInventoryRecordItemCode(Long id) {
+            return String.format("II" + ID_FORMAT, id);
+        }
+
         // 코드 유효성 검증 메서드
         public static boolean isValidCode(String code) {
             if (code == null || code.length() != CODE_LENGTH) {
