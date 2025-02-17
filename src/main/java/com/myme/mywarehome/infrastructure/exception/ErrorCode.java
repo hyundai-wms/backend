@@ -52,6 +52,9 @@ public enum ErrorCode {
     STOCK_ALREADY_ISSUED(409, "I004", "이미 출고 처리된 재고입니다."),
     STOCK_ASSIGN_TIMEOUT(408, "S003", "재고 할당 처리 시간이 초과되었습니다."),
     STOCK_NOT_FOUND(404, "S004", "해당 재고를 찾을 수 없습니다."),
+
+    // BomTree
+    ENGINE_NOT_FOUND(404, "M001", "해당 엔진 정보를 찾을 수 없습니다."),
     ;
 
 
