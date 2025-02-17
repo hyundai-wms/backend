@@ -11,6 +11,7 @@ import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUse
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
 import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
+import com.myme.mywarehome.infrastructure.config.resolver.SelectedDate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,8 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/v1/storages/receipts")
@@ -45,12 +48,12 @@ public class ReceiptController {
 
     @GetMapping("/today")
     public CommonResponse<TodayReceiptResponse> getTodayReceipts(
-            @Valid @RequestBody(required = false) SelectedDateRequest request,
+            @SelectedDate LocalDate selectedDate,
             @PageableDefault Pageable pageable
     ) {
         return CommonResponse.from(
                 TodayReceiptResponse.from(
-                        getTodayReceiptUseCase.getTodayReceipt(SelectedDateRequest.toLocalDate(request), pageable)
+                        getTodayReceiptUseCase.getTodayReceipt(selectedDate, pageable)
                 )
         );
     }
