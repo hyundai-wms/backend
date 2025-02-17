@@ -17,7 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
 
@@ -54,6 +57,19 @@ public class ReceiptController {
                 TodayReceiptResponse.from(
                         getTodayReceiptUseCase.getTodayReceipt(selectedDate, pageable)
                 )
+        );
+    }
+
+    @GetMapping(value = "/today/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<Object>> streamTodayReceipts(
+            @SelectedDate LocalDate selectedDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return getTodayReceiptUseCase.subscribeTodayReceipts(
+                selectedDate,
+                page,
+                size
         );
     }
 

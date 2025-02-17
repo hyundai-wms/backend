@@ -26,6 +26,11 @@ public class SelectedDateArgumentResolver implements HandlerMethodArgumentResolv
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         String selectedDate = webRequest.getParameter("selectedDate");
 
+        // selectedDate 파라미터가 없으면 바로 현재 날짜 반환
+        if (selectedDate == null || selectedDate.isBlank()) {
+            return LocalDate.now();
+        }
+
         SelectedDateRequest dateRequest = new SelectedDateRequest(selectedDate);
 
         Set<ConstraintViolation<SelectedDateRequest>> violations =

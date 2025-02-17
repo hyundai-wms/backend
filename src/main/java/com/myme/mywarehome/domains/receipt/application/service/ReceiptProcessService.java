@@ -9,6 +9,8 @@ import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUse
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptProcessBulkCommand;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptBulkCreatedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptCreatedEvent;
+import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptPlanBulkStatusChangedEvent;
+import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptPlanStatusChangedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReceiptPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReturnPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetOutboundProductPort;
@@ -20,10 +22,7 @@ import com.myme.mywarehome.domains.stock.application.exception.StockCreationTime
 import jakarta.transaction.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -62,7 +61,14 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
         CompletableFuture<Stock> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new ReceiptCreatedEvent(createdReceipt, future));
 
-        // 4. 생성된 재고를 반환
+        // 4. ReceiptPlan 상태 변경 이벤트 발행
+        eventPublisher.publishEvent(new ReceiptPlanStatusChangedEvent(
+                receiptPlan.getReceiptPlanId(),
+                selectedDate,
+                "RECEIPT_PROCESSED"
+        ));
+
+        // 5. 생성된 재고를 반환
         try {
             return future.get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -78,6 +84,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
 
         List<Receipt> allReceipts = new ArrayList<>();
         List<Return> allReturns = new ArrayList<>();
+        Set<Long> processedPlanIds = new HashSet<>();
 
         for (ReceiptPlan receiptPlan : receiptPlanList) {
             // 1. 기존 OutboundProduct ID들을 조회
@@ -145,6 +152,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                                 .build();
                         allReceipts.add(receipt);
                         processedThisRound++;
+                        processedPlanIds.add(receiptPlan.getReceiptPlanId());
                     } else if (processedThisRound < (additionalReceipts + additionalReturns)) {
                         Return returnEntity = Return.builder()
                                 .receiptPlan(receiptPlan)
@@ -152,6 +160,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                                 .build();
                         allReturns.add(returnEntity);
                         processedThisRound++;
+                        processedPlanIds.add(receiptPlan.getReceiptPlanId());
                     } else {
                         break;
                     }
@@ -159,6 +168,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                     throw new ReceiptBulkProcessException();
                 }
             }
+
         }
 
         // 최종 저장 로직
@@ -171,6 +181,15 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                     .map(createReceiptPort::create)
                     .toList();
             eventPublisher.publishEvent(new ReceiptBulkCreatedEvent(createdReceipts));
+        }
+
+        // 한 번에 모든 변경된 plan들의 상태 변경 이벤트 발행
+        if (!processedPlanIds.isEmpty()) {
+            eventPublisher.publishEvent(new ReceiptPlanBulkStatusChangedEvent(
+                    new ArrayList<>(processedPlanIds),
+                    selectedDate,
+                    "BULK_PROCESSED"
+            ));
         }
     }
 

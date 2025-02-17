@@ -4,9 +4,11 @@ import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.receipt.application.domain.Return;
 import com.myme.mywarehome.domains.receipt.application.domain.service.OutboundProductDomainService;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
+import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptPlanStatusChangedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReturnPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,6 +18,7 @@ import java.time.LocalDate;
 public class ReceiptReturnService implements ReceiptReturnUseCase {
     private final OutboundProductDomainService outboundProductDomainService;
     private final CreateReturnPort createReturnPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -28,6 +31,13 @@ public class ReceiptReturnService implements ReceiptReturnUseCase {
                 .receiptPlan(receiptPlan)
                 .returnDate(selectedDate)
                 .build();
+
+        // 3. ReceiptPlan 상태 변경 이벤트 발행
+        eventPublisher.publishEvent(new ReceiptPlanStatusChangedEvent(
+                receiptPlan.getReceiptPlanId(),
+                selectedDate,
+                "RECEIPT_PROCESSED"
+        ));
 
         createReturnPort.create(returnEntity);
     }
