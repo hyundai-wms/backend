@@ -72,8 +72,8 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
 
     @Override
     @Transactional
-    public void processBulk(ReceiptProcessBulkCommand command) {
-        List<ReceiptPlan> receiptPlanList = getReceiptPlanPort.findAllReceiptPlansByDate(command.selectedDate());
+    public void processBulk(ReceiptProcessBulkCommand command, LocalDate selectedDate) {
+        List<ReceiptPlan> receiptPlanList = getReceiptPlanPort.findAllReceiptPlansByDate(selectedDate);
         if (receiptPlanList.isEmpty()) return;
 
         List<Receipt> allReceipts = new ArrayList<>();
@@ -141,14 +141,14 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                     if (processedThisRound < additionalReceipts) {
                         Receipt receipt = Receipt.builder()
                                 .receiptPlan(receiptPlan)
-                                .receiptDate(command.selectedDate())
+                                .receiptDate(selectedDate)
                                 .build();
                         allReceipts.add(receipt);
                         processedThisRound++;
                     } else if (processedThisRound < (additionalReceipts + additionalReturns)) {
                         Return returnEntity = Return.builder()
                                 .receiptPlan(receiptPlan)
-                                .returnDate(command.selectedDate())
+                                .returnDate(selectedDate)
                                 .build();
                         allReturns.add(returnEntity);
                         processedThisRound++;

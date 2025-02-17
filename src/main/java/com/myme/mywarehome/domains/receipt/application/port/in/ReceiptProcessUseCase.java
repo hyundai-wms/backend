@@ -7,5 +7,5 @@ import java.time.LocalDate;
 
 public interface ReceiptProcessUseCase {
     Stock process(String outboundProductId, LocalDate selectedDate);
-    void processBulk(ReceiptProcessBulkCommand command);
+    void processBulk(ReceiptProcessBulkCommand command, LocalDate selectedDate);
 }

@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 public class IssuePlanController {
     private final CreateIssuePlanUseCase createIssuePlanUseCase;
     private final UpdateIssuePlanUseCase updateIssuePlanUseCase;
-    private final GetProductPort getProductPort;
     private final DeleteIssuePlanUseCase deleteIssuePlanUseCase;
     private final GetAllIssuePlanUseCase getAllIssuePlanUseCase;
 
