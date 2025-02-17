@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -41,6 +42,9 @@ public class SecurityConfig {
                                 .requestMatchers("/v1/auth/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()  // 로그인 경로만 허용
                                 .requestMatchers("/v1/users/me").hasAnyRole("ADMIN", "MIDDLE_MANAGER", "WMS_MANAGER", "WORKER")
                                 .requestMatchers("/v1/users/**").hasRole("ADMIN")
+                                .requestMatchers(request ->
+                                        request.getRequestURI().endsWith("/stream") &&
+                                                request.getHeader("Accept").contains(MediaType.TEXT_EVENT_STREAM_VALUE)).hasAnyRole("ADMIN", "MIDDLE_MANAGER", "WMS_MANAGER", "WORKER")
                                 .requestMatchers("/v1/**").hasAnyRole("ADMIN", "MIDDLE_MANAGER", "WMS_MANAGER", "WORKER")
                                 .anyRequest().authenticated()
                 )
@@ -98,6 +102,11 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://mywareho.me", "http://localhost:5173", "https://api.mywareho.me", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+
+        // SSE를 위한 헤더 설정
+        configuration.addExposedHeader("Content-Type");
+        // NGINX 프록시를 위한 설정
+        configuration.addExposedHeader("X-Accel-Buffering");
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
