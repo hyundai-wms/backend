@@ -20,4 +20,6 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p WHERE p.productNumber IN :productNumberList")
     List<Product> findAllByProductNumberIn(@Param("productNumberList") Set<String> productNumberList);
+
+    List<Product> findByApplicableEngine(String applicableEngine);
 }
