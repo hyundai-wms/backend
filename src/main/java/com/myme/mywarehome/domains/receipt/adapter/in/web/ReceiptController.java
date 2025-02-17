@@ -9,7 +9,6 @@ import com.myme.mywarehome.domains.receipt.application.port.in.GetAllReceiptUseC
 import com.myme.mywarehome.domains.receipt.application.port.in.GetTodayReceiptUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptProcessUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
-import com.myme.mywarehome.infrastructure.common.request.SelectedDateRequest;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import com.myme.mywarehome.infrastructure.config.resolver.SelectedDate;
 import jakarta.validation.Valid;
