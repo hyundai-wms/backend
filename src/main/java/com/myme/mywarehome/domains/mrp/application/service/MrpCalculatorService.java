@@ -54,11 +54,12 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
         // 1. Y, Y', Y'' 계산
         long requiredCount = mrpNode.requiredPartsCount();  // Y (기본 필요 수량)
         double safetyIncludedCount = requiredCount * 1.1;  // Y' (안전재고 포함)
-        int safetyStock = (int) (requiredCount * 0.1);     // 안전재고 수량
+        double safetyStockCount = requiredCount * 0.1; // 안전재고 수량
 
         // Y'' (EA 조정된 수량) 계산
         int eachCount = product.getEachCount();
         long adjustedCount = (long) Math.ceil(safetyIncludedCount / eachCount) * eachCount;
+        int safetyStock = (int) Math.ceil(safetyStockCount / eachCount);
 
         // 2. 현재 재고 확인 및 필요 수량(N) 계산
         InventoryRecordItem inventoryItem = context.getInventoryRecord().get(product.getProductId());

@@ -10,17 +10,14 @@ import com.myme.mywarehome.domains.mrp.application.service.dto.MrpCalculateResul
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpContextDto;
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpNodeDto;
 import com.myme.mywarehome.domains.mrp.application.service.dto.UnifiedBomDataDto;
-import com.myme.mywarehome.domains.product.application.domain.Product;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
@@ -28,8 +25,7 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
 
     @Override
     public MrpCalculateResultDto traverse(UnifiedBomDataDto unifiedBomData, MrpContextDto context) {
-        Queue<MrpNodeDto> productQueue = new LinkedList<>();
-        Set<Long> visited = new HashSet<>();
+        Deque<MrpNodeDto> productDeque = new LinkedList<>();
         List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
         List<ProductionPlanningReport> productionReports = new ArrayList<>();
         List<MrpExceptionReport> exceptionReports = new ArrayList<>();
@@ -39,50 +35,29 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                 unifiedBomData.virtualRoot(),
                 1  // 가상 루트의 수량은 1
         );
-        productQueue.offer(rootNode);
+        productDeque.offerLast(rootNode);
 
-        while (!productQueue.isEmpty()) {
-            MrpNodeDto currentNode = productQueue.poll();
-            Long currentProductId = currentNode.product().getProductId();
+        while (!productDeque.isEmpty()) {
+            MrpNodeDto currentNode = productDeque.pollFirst();
 
-            // 이미 방문한 노드는 건너뛰되, 공통 부품이면 수량을 누적
-            if (visited.contains(currentProductId)) {
-                if (isCommonPart(currentNode.product())) {
-                    // 공통 부품의 경우 이전 계산 결과에 현재 수량을 더해서 재계산
-                    MrpCalculateResultDto additionalResult = mrpCalculatorUseCase.calculate(currentNode, context);
-                    if (additionalResult.hasExceptions()) {
-                        return additionalResult;
-                    }
-                    purchaseReports.addAll(additionalResult.purchaseOrderReports());
-                    productionReports.addAll(additionalResult.productionPlanningReports());
-                }
+            // 가상 루트는 건너뛰기
+            if (currentNode.product().getProductNumber().equals("VIRTUAL-ROOT")) {
+                // 자식 노드들만 큐에 추가
+                processChildNodes(currentNode, unifiedBomData, productDeque);
                 continue;
             }
 
-            // 현재 노드가 가상 루트가 아닌 경우에만 계산 수행
-            if (!currentNode.product().getProductNumber().equals("VIRTUAL-ROOT")) {
-                MrpCalculateResultDto result = mrpCalculatorUseCase.calculate(currentNode, context);
-                if (result.hasExceptions()) {
-                    return result;
-                }
-                purchaseReports.addAll(result.purchaseOrderReports());
-                productionReports.addAll(result.productionPlanningReports());
+            // 실제 제품 노드 처리
+            MrpCalculateResultDto result = mrpCalculatorUseCase.calculate(currentNode, context);
+            if (result.hasExceptions()) {
+                return result;
             }
 
-            visited.add(currentProductId);
+            purchaseReports.addAll(result.purchaseOrderReports());
+            productionReports.addAll(result.productionPlanningReports());
 
-            // 자식 노드들 큐에 추가
-            List<BomTree> children = unifiedBomData.bomTreeMap()
-                    .getOrDefault(currentProductId, Collections.emptyList());
-
-            for (BomTree child : children) {
-                long requiredCount = currentNode.requiredPartsCount() * child.getChildCompositionRatio();
-                MrpNodeDto childNode = new MrpNodeDto(
-                        child.getChildProduct(),
-                        requiredCount
-                );
-                productQueue.offer(childNode);
-            }
+            // 자식 노드들 처리
+            processChildNodes(currentNode, unifiedBomData, productDeque);
         }
 
         return new MrpCalculateResultDto(
@@ -93,9 +68,63 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
         );
     }
 
-    private boolean isCommonPart(Product product) {
-        String productNumber = product.getProductNumber();
-        return productNumber.endsWith("01P00") || productNumber.endsWith("02P00");
+    private void processChildNodes(MrpNodeDto parentNode, UnifiedBomDataDto unifiedBomData, Deque<MrpNodeDto> deque) {
+        List<BomTree> children = unifiedBomData.bomTreeMap()
+                .getOrDefault(parentNode.product().getProductId(), Collections.emptyList());
+
+        for (BomTree child : children) {
+            long requiredCount = parentNode.requiredPartsCount() * child.getChildCompositionRatio();
+            MrpNodeDto childNode = new MrpNodeDto(
+                    child.getChildProduct(),
+                    requiredCount
+            );
+
+            // deque의 모든 원소를 순회하며 같은 품번이 있는지 확인
+            boolean foundSameProduct = false;
+            Iterator<MrpNodeDto> iterator = deque.iterator();
+            int position = 0;
+            int targetPosition = -1;
+
+            while (iterator.hasNext()) {
+                MrpNodeDto existingNode = iterator.next();
+                if (hasSameProductNumber(existingNode, childNode)) {
+                    foundSameProduct = true;
+                    targetPosition = position;
+                    break;
+                }
+                position++;
+            }
+
+            if (foundSameProduct) {
+                // 같은 품번이 발견된 위치 다음에 노드를 삽입
+                List<MrpNodeDto> temp = new ArrayList<>();
+                for (int i = 0; i <= targetPosition; i++) {
+                    temp.add(deque.pollFirst());
+                }
+                deque.addFirst(childNode);
+                temp.forEach(deque::addFirst);
+
+                log.debug("\n\n\n\n");
+                Queue<MrpNodeDto> q = new LinkedList<>();
+                while(!deque.isEmpty()) {
+                    MrpNodeDto mnd = deque.pollFirst();
+                    q.add(mnd);
+                    log.debug(mnd.product().getProductNumber());
+                }
+                while(!q.isEmpty()) {
+                    deque.add(q.poll());
+                }
+                log.debug("\n\n\n\n");
+
+            } else {
+                deque.addLast(childNode);
+            }
+        }
+    }
+
+    private boolean hasSameProductNumber(MrpNodeDto node1, MrpNodeDto node2) {
+        return node1.product().getProductNumber().equals(
+                node2.product().getProductNumber());
     }
 
 }
