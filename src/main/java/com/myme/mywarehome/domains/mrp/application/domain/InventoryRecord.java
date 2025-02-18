@@ -45,7 +45,7 @@ public class InventoryRecord extends BaseTimeEntity {
 
     // 새로운 코드 부여
     @PostPersist
-    private void generateStockCode() {
+    private void generateInventoryRecordCode() {
         this.inventoryRecordCode = CodeGenerator.generateInventoryRecordCode(inventoryRecordId);
     }
 }
