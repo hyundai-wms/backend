@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import org.springframework.stereotype.Repository;
 
-
+@Repository
 public interface BomTreeJpaRepository extends JpaRepository<BomTree, Long> {
     @Query("SELECT bt FROM BomTree bt " +
             "WHERE bt.parentProduct.productNumber = :rootProductNumber " +
