@@ -68,7 +68,7 @@ public class MrpBomTreeService implements MrpBomTreeUseCase {
             BomTree rootConnection = BomTree.builder()
                     .parentProduct(virtualRoot)
                     .childProduct(engineProduct)
-                    .childCompositionRatio(requiredCount)
+                    .childCompositionRatio(requiredCount) // todo : 구성비에 왜 requiredCount를 넣었는지
                     .build();
 
             allBomTrees.add(rootConnection);
@@ -150,8 +150,7 @@ public class MrpBomTreeService implements MrpBomTreeUseCase {
         }
 
         // 루트 노드 찾기 (다른 노드의 자식이 아닌 노드)
-        for (BomTree tree : bomTrees) {
-            String childNumber = tree.getChildProduct().getProductNumber();
+        for (BomTree ignored : bomTrees) {
             rootProducts.removeIf(root -> parentToChildren.values().stream()
                     .anyMatch(children -> children.contains(root)));
         }
