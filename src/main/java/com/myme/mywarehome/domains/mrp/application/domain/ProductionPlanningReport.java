@@ -33,14 +33,26 @@ public class ProductionPlanningReport extends BaseTimeEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    private Integer quantity;
+    private Long quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "mrp_output_id")
+    private MrpOutput mrpOutput;
+
+    private Integer safeItemCount;
 
     @Builder
-    public ProductionPlanningReport(Long productionPlanningReportId, LocalDate productionPlanningDate, LocalDate issuePlanDate, Product product, Integer quantity) {
+    public ProductionPlanningReport(Long productionPlanningReportId, LocalDate productionPlanningDate, LocalDate issuePlanDate, Product product, Long quantity, MrpOutput mrpOutput, Integer safeItemCount) {
         this.productionPlanningReportId = productionPlanningReportId;
         this.productionPlanningDate = productionPlanningDate;
         this.issuePlanDate = issuePlanDate;
         this.product = product;
         this.quantity = quantity;
+        this.mrpOutput = mrpOutput;
+        this.safeItemCount = safeItemCount;
+    }
+
+    public void connectWithMrpOutput(MrpOutput mrpOutput) {
+        this.mrpOutput = mrpOutput;
     }
 }

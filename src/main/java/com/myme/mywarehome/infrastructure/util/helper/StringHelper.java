@@ -57,6 +57,11 @@ public class StringHelper {
             return String.format("II" + ID_FORMAT, id);
         }
 
+        // MrpOutput 코드 생성 (MO + 8자리 숫자)
+        public static String generateMrpOutputCode(Long id) {
+            return String.format("MO" + ID_FORMAT, id);
+        }
+
         // 코드 유효성 검증 메서드
         public static boolean isValidCode(String code) {
             if (code == null || code.length() != CODE_LENGTH) {

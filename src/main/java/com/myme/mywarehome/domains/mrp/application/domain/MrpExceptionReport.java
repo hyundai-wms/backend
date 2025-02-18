@@ -5,8 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,4 +25,20 @@ public class MrpExceptionReport extends BaseTimeEntity {
     private String exceptionType;
 
     private String exceptionMessage;
+
+    @ManyToOne
+    @JoinColumn(name = "mrp_output_id")
+    private MrpOutput mrpOutput;
+
+    @Builder
+    public MrpExceptionReport(Long mrpExceptionReportId, String exceptionType, String exceptionMessage, MrpOutput mrpOutput) {
+        this.mrpExceptionReportId = mrpExceptionReportId;
+        this.exceptionType = exceptionType;
+        this.exceptionMessage = exceptionMessage;
+        this.mrpOutput = mrpOutput;
+    }
+
+    public void connectWithMrpOutput(MrpOutput mrpOutput) {
+        this.mrpOutput = mrpOutput;
+    }
 }
