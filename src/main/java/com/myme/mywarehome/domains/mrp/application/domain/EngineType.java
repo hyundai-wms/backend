@@ -6,10 +6,10 @@ import lombok.Getter;
 
 @Getter
 public enum EngineType {
-    KAPPA("Kappa", "Kappa 엔진"),
-    GAMMA("Gamma", "Gamma 엔진"),
-    NU("Nu", "Nu 엔진"),
-    THETA("Theta", "Theta 엔진");
+    KAPPA("kappa", "Kappa 엔진"),
+    GAMMA("gamma", "Gamma 엔진"),
+    NU("nu", "Nu 엔진"),
+    THETA("theta", "Theta 엔진");
 
     private final String pathName;
     private final String dbName;
