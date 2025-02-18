@@ -25,7 +25,7 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
 
     @Override
     public MrpCalculateResultDto traverse(UnifiedBomDataDto unifiedBomData, MrpContextDto context) {
-        Deque<MrpNodeDto> productDeque = new LinkedList<>();
+        LinkedList<MrpNodeDto> productDeque = new LinkedList<>();
         List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
         List<ProductionPlanningReport> productionReports = new ArrayList<>();
         List<MrpExceptionReport> exceptionReports = new ArrayList<>();
@@ -68,7 +68,7 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
         );
     }
 
-    private void processChildNodes(MrpNodeDto parentNode, UnifiedBomDataDto unifiedBomData, Deque<MrpNodeDto> deque) {
+    private void processChildNodes(MrpNodeDto parentNode, UnifiedBomDataDto unifiedBomData, LinkedList<MrpNodeDto> deque) {
         List<BomTree> children = unifiedBomData.bomTreeMap()
                 .getOrDefault(parentNode.product().getProductId(), Collections.emptyList());
 
@@ -79,52 +79,24 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                     requiredCount
             );
 
-            // deque의 모든 원소를 순회하며 같은 품번이 있는지 확인
-            boolean foundSameProduct = false;
-            Iterator<MrpNodeDto> iterator = deque.iterator();
-            int position = 0;
-            int targetPosition = -1;
-
-            while (iterator.hasNext()) {
-                MrpNodeDto existingNode = iterator.next();
-                if (hasSameProductNumber(existingNode, childNode)) {
-                    foundSameProduct = true;
-                    targetPosition = position;
+            // 같은 품번이 있는지 검사 (같은 레벨 내에서)
+            int duplicateIndex = -1;
+            for (int i = 0; i < deque.size(); i++) {
+                MrpNodeDto node = deque.get(i);
+                if (node.product().getProductNumber().equals(childNode.product().getProductNumber())) {
+                    duplicateIndex = i;
                     break;
                 }
-                position++;
             }
 
-            if (foundSameProduct) {
-                // 같은 품번이 발견된 위치 다음에 노드를 삽입
-                List<MrpNodeDto> temp = new ArrayList<>();
-                for (int i = 0; i <= targetPosition; i++) {
-                    temp.add(deque.pollFirst());
-                }
-                deque.addFirst(childNode);
-                temp.forEach(deque::addFirst);
-
-                log.debug("\n\n\n\n");
-                Queue<MrpNodeDto> q = new LinkedList<>();
-                while(!deque.isEmpty()) {
-                    MrpNodeDto mnd = deque.pollFirst();
-                    q.add(mnd);
-                    log.debug(mnd.product().getProductNumber());
-                }
-                while(!q.isEmpty()) {
-                    deque.add(q.poll());
-                }
-                log.debug("\n\n\n\n");
-
+            if (duplicateIndex != -1) {
+                // 중복된 품번이 있으면, 해당 노드 바로 뒤에 삽입
+                deque.add(duplicateIndex + 1, childNode);
             } else {
+                // 없으면 맨 뒤에 추가
                 deque.addLast(childNode);
             }
         }
-    }
-
-    private boolean hasSameProductNumber(MrpNodeDto node1, MrpNodeDto node2) {
-        return node1.product().getProductNumber().equals(
-                node2.product().getProductNumber());
     }
 
 }

@@ -68,6 +68,7 @@ public class MrpOutputService implements MrpOutputUseCase {
                         .receiptPlanDate(getLaterDate(r1.getReceiptPlanDate(), r2.getReceiptPlanDate()))
                         .product(r1.getProduct())
                         .quantity(r1.getQuantity() + r2.getQuantity())
+                        .safeItemCount(r1.getSafeItemCount() + r2.getSafeItemCount())
                         .build()
         );
     }
@@ -80,6 +81,7 @@ public class MrpOutputService implements MrpOutputUseCase {
                         .issuePlanDate(getLaterDate(r1.getIssuePlanDate(), r2.getIssuePlanDate()))
                         .product(r1.getProduct())
                         .quantity(r1.getQuantity() + r2.getQuantity())
+                        .safeItemCount(r1.getSafeItemCount() + r2.getSafeItemCount())
                         .build()
         );
     }

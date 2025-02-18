@@ -68,7 +68,7 @@ public class MrpBomTreeService implements MrpBomTreeUseCase {
             BomTree rootConnection = BomTree.builder()
                     .parentProduct(virtualRoot)
                     .childProduct(engineProduct)
-                    .childCompositionRatio(requiredCount) // todo : 구성비에 왜 requiredCount를 넣었는지
+                    .childCompositionRatio(requiredCount)
                     .build();
 
             allBomTrees.add(rootConnection);
