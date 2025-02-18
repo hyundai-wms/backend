@@ -12,6 +12,7 @@ import com.myme.mywarehome.domains.stock.adapter.out.persistence.BinJpaRepositor
 import com.myme.mywarehome.domains.stock.application.domain.Bay;
 import com.myme.mywarehome.domains.stock.application.domain.Bin;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -116,45 +117,82 @@ public class InitDataForProdConfig implements CommandLineRunner {
     private List<Bay> initializeBays(List<Product> products) {
         List<Bay> bays = new ArrayList<>();
         final int TOTAL_BAYS = 3200;
-        final int PRODUCTS_COUNT = products.size();
 
-        int baseAllocation = TOTAL_BAYS / PRODUCTS_COUNT;
-        int remainingBays = TOTAL_BAYS - (baseAllocation * PRODUCTS_COUNT);
+        // 제품을 depth별로 분류
+        Map<Integer, List<Product>> depthProducts = products.stream()
+                .collect(Collectors.groupingBy(product -> {
+                    String basePartNum = product.getProductNumber().substring(0, 5);
+                    if (basePartNum.equals("10000")) {
+                        return 0; // 엔진
+                    } else if (Arrays.asList(
+                            "10100", "60000", "50000", "70100",
+                            "40000", "30000", "20000"
+                    ).contains(basePartNum)) {
+                        return 1; // 주요 모듈
+                    } else {
+                        return 2; // 세부 부품
+                    }
+                }));
+
+        // depth별 Bay 할당 비율 계산
+        // 엔진(0 depth): 40% (가장 많은 공간 필요)
+        // 주요 모듈(1 depth): 35%
+        // 세부 부품(2 depth): 25% (EA가 크므로 상대적으로 적은 공간 필요)
+        Map<Integer, Integer> depthBayCount = new HashMap<>();
+        depthBayCount.put(0, (int)(TOTAL_BAYS * 0.4)); // 1280 bays for engines
+        depthBayCount.put(1, (int)(TOTAL_BAYS * 0.35)); // 1120 bays for main modules
+        depthBayCount.put(2, TOTAL_BAYS - depthBayCount.get(0) - depthBayCount.get(1)); // 800 bays for detailed parts
 
         int totalBaysCreated = 0;
 
-        for (int productIndex = 0; productIndex < products.size(); productIndex++) {
-            Product product = products.get(productIndex);
-            int baysForThisProduct = baseAllocation;
-            if (productIndex < remainingBays) {
-                baysForThisProduct++;
+        // depth별로 Bay 생성
+        for (int depth = 0; depth <= 2; depth++) {
+            List<Product> depthProductList = depthProducts.getOrDefault(depth, new ArrayList<>());
+            int baysForThisDepth = depthBayCount.get(depth);
+
+            if (depthProductList.isEmpty()) {
+                continue;
             }
 
-            for (int i = 0; i < baysForThisProduct; i++) {
-                int currentPosition = totalBaysCreated + i;
-                String bayNumber = String.format("%c%c%02d",
-                        (char)('A' + (currentPosition / 520)),
-                        (char)('A' + ((currentPosition % 520) / 20)),
-                        (currentPosition % 20) + 1);
+            // 각 제품당 할당할 Bay 수 계산
+            int baysPerProduct = baysForThisDepth / depthProductList.size();
+            int remainingBays = baysForThisDepth % depthProductList.size();
 
-                Bay bay = Bay.builder()
-                        .bayNumber(bayNumber)
-                        .product(product)
-                        .binList(new ArrayList<>())
-                        .build();
+            for (int productIndex = 0; productIndex < depthProductList.size(); productIndex++) {
+                Product product = depthProductList.get(productIndex);
+                int baysForThisProduct = baysPerProduct;
+                if (productIndex < remainingBays) {
+                    baysForThisProduct++;
+                }
 
-                bays.add(bay);
+                // Bay 생성
+                for (int i = 0; i < baysForThisProduct; i++) {
+                    int currentPosition = totalBaysCreated + i;
+                    String bayNumber = String.format("%c%c%02d",
+                            (char)('A' + (currentPosition / 520)),
+                            (char)('A' + ((currentPosition % 520) / 20)),
+                            (currentPosition % 20) + 1);
+
+                    Bay bay = Bay.builder()
+                            .bayNumber(bayNumber)
+                            .product(product)
+                            .binList(new ArrayList<>())
+                            .build();
+
+                    bays.add(bay);
+                }
+                totalBaysCreated += baysForThisProduct;
             }
-            totalBaysCreated += baysForThisProduct;
         }
 
+        // 검증
         if (bays.size() != TOTAL_BAYS) {
             throw new IllegalStateException(
                     String.format("Expected %d bays but created %d", TOTAL_BAYS, bays.size())
             );
         }
 
-        return bays;  // List<Bay> 반환
+        return bays;
     }
 
     private void initializeEngineProducts(List<Product> products, String engineType, String engineName, Map<String, Company> companyMap) {
