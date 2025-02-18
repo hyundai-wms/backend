@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-@Profile("prod")
+@Profile("dev")
 public class InitDataForDevConfig implements CommandLineRunner {
     private final CompanyJpaRepository companyJpaRepository;
     private final ProductJpaRepository productJpaRepository;

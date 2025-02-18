@@ -5,8 +5,10 @@ import com.myme.mywarehome.domains.mrp.application.domain.ProductionPlanningRepo
 import com.myme.mywarehome.domains.mrp.application.domain.PurchaseOrderReport;
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpOutputUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.out.CreateMrpOutputPort;
+import com.myme.mywarehome.domains.mrp.application.port.out.UpdateMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpCalculateResultDto;
 import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,9 +25,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MrpOutputService implements MrpOutputUseCase {
     private final CreateMrpOutputPort createMrpOutputPort;
+    private final UpdateMrpOutputPort updateMrpOutputPort;
 
     @Override
+    @Transactional
     public void saveResults(MrpCalculateResultDto result) {
+        // 이전 주문들 비활성화
+        updateMrpOutputPort.deactivatePreviousOrders();
+
         if (result.hasExceptions()) {
             handleExceptionResult(result);
             return;
@@ -34,11 +41,6 @@ public class MrpOutputService implements MrpOutputUseCase {
         // 일정 최적화
         List<PurchaseOrderReport> optimizedPurchaseReports = optimizePurchaseSchedules(result.purchaseOrderReports());
         List<ProductionPlanningReport> optimizedProductionReports = optimizeProductionSchedules(result.productionPlanningReports());
-
-        log.debug("\n\n\n\n");
-        log.debug("PurchaseReports : " + optimizedPurchaseReports.size() + " / " + result.purchaseOrderReports().size());
-        log.debug("PurchaseReports : " + optimizedProductionReports.size() + " / " + result.productionPlanningReports().size());
-        log.debug("\n\n\n\n");
 
         // MrpOutput 생성 및 저장
         MrpOutput mrpOutput = MrpOutput.builder()
