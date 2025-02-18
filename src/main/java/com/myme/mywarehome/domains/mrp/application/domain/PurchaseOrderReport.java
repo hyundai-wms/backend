@@ -1,6 +1,7 @@
 package com.myme.mywarehome.domains.mrp.application.domain;
 
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "purchase_order_reports")
-public class PurchaseOrderReport {
+public class PurchaseOrderReport extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long purchaseOrderReportId;
