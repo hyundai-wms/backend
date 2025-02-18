@@ -189,8 +189,8 @@ public class InitDataForDevConfig implements CommandLineRunner {
             // Gamma와 Theta는 각자의 EGR 모듈 사용
             addProduct(products, "50300", engineType, engineName, "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
         } else if (engineType.equals("03")) {
-            // Kappa 처리할 때만 엔진 EGR 모듈 생성
-            addProduct(products, "50300", "02", engineName, "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
+            // Kappa 엔진을 처리할 때만 공용 EGR 모듈 생성
+            addProduct(products, "50300", "02", "Kappa/Nu 공용", "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
         }
 
         // 4. Ignition Module
@@ -432,7 +432,6 @@ public class InitDataForDevConfig implements CommandLineRunner {
             });
         }
 
-        // 흡배기 모듈의 하위 부품
         Product intakeExhaustModule = productMap.get("50000-" + engineType + "P00");
         if (intakeExhaustModule != null) {
             List<String[]> components = new ArrayList<>();
@@ -444,11 +443,11 @@ public class InitDataForDevConfig implements CommandLineRunner {
 
             components.add(new String[]{"50200", "1"}); // 배기 매니폴드 모듈
 
-            // EGR 모듈 처리
+            // EGR 모듈 처리 - 모든 엔진에서 각자에 맞는 EGR 모듈 연결
             if (engineType.equals("06") || engineType.equals("04")) {
                 components.add(new String[]{"50300", "1", engineType}); // 전용 EGR
-            } else if (engineType.equals("03") || engineType.equals("05")) {
-                components.add(new String[]{"50300", "1", "02"}); // 공용 EGR
+            } else {
+                components.add(new String[]{"50300", "1", "02"}); // Kappa/Nu 공용 EGR
             }
 
             addModuleComponents(bomTrees, productMap, intakeExhaustModule, engineType,
