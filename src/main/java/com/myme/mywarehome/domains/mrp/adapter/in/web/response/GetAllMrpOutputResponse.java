@@ -20,6 +20,7 @@ public record GetAllMrpOutputResponse(
             Long mrpOutputId,
             String mrpOutputCode,
             String createdDate,
+            String dueDate,
             String orderedDate,
             Boolean isOrdered,
             Boolean canOrder,
@@ -34,7 +35,8 @@ public record GetAllMrpOutputResponse(
             return new MrpOutputInfo(
                     output.getMrpOutputId(),
                     output.getMrpOutputCode(),
-                    DateFormatHelper.formatDate(output.getCreatedAt().toLocalDate()),
+                    DateFormatHelper.formatDate(output.getCreatedDate()),
+                    DateFormatHelper.formatDate(output.getDueDate()),
                     DateFormatHelper.formatDate(output.getOrderedDate()),
                     output.getIsOrdered(),
                     output.getCanOrder(),

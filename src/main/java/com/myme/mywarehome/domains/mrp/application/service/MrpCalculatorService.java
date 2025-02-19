@@ -112,7 +112,7 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
             // 엔진이거나 자체 생산 부품인 경우
             ProductionPlanningReport productionReport = ProductionPlanningReport.builder()
                     .productionPlanningDate(startDate)
-                    .issuePlanDate(context.getComputedDate())
+                    .receiptPlanDate(context.getComputedDate())
                     .product(product)
                     .quantity(orderQuantity)
                     .safeItemCount(safetyStock)

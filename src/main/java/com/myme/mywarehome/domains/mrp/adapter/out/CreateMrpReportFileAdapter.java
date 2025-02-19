@@ -77,14 +77,14 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
             XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet("Production Planning Report");
 
-            String[] headers = {"생산계획일", "출고예정일", "품번", "품명", "생산수량", "안전재고"};
+            String[] headers = {"생산계획일", "입고예정일", "품번", "품명", "생산수량", "안전재고"};
             createHeaders(sheet, headers);
 
             int rowNum = 1;
             for (ProductionPlanningReport report : reports) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(report.getProductionPlanningDate().toString());
-                row.createCell(1).setCellValue(report.getIssuePlanDate().toString());
+                row.createCell(1).setCellValue(report.getReceiptPlanDate().toString());
                 row.createCell(2).setCellValue(report.getProduct().getProductNumber());
                 row.createCell(3).setCellValue(report.getProduct().getProductName());
                 row.createCell(4).setCellValue(report.getQuantity());

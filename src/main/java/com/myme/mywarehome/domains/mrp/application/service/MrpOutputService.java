@@ -35,12 +35,12 @@ public class MrpOutputService implements MrpOutputUseCase {
 
     @Override
     @Transactional
-    public void saveResults(MrpCalculateResultDto result) {
+    public void saveResults(LocalDate dueDate, MrpCalculateResultDto result) {
         // 이전 주문들 비활성화
         updateMrpOutputPort.deactivatePreviousOrders();
 
         if (result.hasExceptions()) {
-            handleExceptionResult(result);
+            handleExceptionResult(dueDate, result);
             return;
         }
 
@@ -51,8 +51,8 @@ public class MrpOutputService implements MrpOutputUseCase {
 
         // MrpOutput 생성 및 저장
         MrpOutput mrpOutput = MrpOutput.builder()
-                .createdDate(DateFormatHelper.formatDate(LocalDate.now()))
-                .orderedDate(LocalDate.now())
+                .createdDate(LocalDate.now())
+                .dueDate(dueDate)
                 .canOrder(true)
                 .isOrdered(false)
                 .build();
@@ -101,7 +101,7 @@ public class MrpOutputService implements MrpOutputUseCase {
                 (r1, r2) -> r1.getProduct().getProductId().equals(r2.getProduct().getProductId()),
                 (r1, r2) -> ProductionPlanningReport.builder()
                         .productionPlanningDate(getEarlierDate(r1.getProductionPlanningDate(), r2.getProductionPlanningDate()))
-                        .issuePlanDate(getLaterDate(r1.getIssuePlanDate(), r2.getIssuePlanDate()))
+                        .receiptPlanDate(getLaterDate(r1.getReceiptPlanDate(), r2.getReceiptPlanDate()))
                         .product(r1.getProduct())
                         .quantity(r1.getQuantity() + r2.getQuantity())
                         .safeItemCount(r1.getSafeItemCount() + r2.getSafeItemCount())
@@ -141,11 +141,11 @@ public class MrpOutputService implements MrpOutputUseCase {
         return optimized;
     }
 
-    private void handleExceptionResult(MrpCalculateResultDto result) {
+    private void handleExceptionResult(LocalDate dueDate, MrpCalculateResultDto result) {
 
         MrpOutput mrpOutput = MrpOutput.builder()
-                .createdDate(DateFormatHelper.formatDate(LocalDate.now()))
-                .orderedDate(LocalDate.now())
+                .createdDate(LocalDate.now())
+                .dueDate(dueDate)
                 .canOrder(false)
                 .isOrdered(false)
                 .build();

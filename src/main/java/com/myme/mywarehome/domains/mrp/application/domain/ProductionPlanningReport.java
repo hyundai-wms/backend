@@ -27,7 +27,7 @@ public class ProductionPlanningReport extends BaseTimeEntity {
 
     private LocalDate productionPlanningDate;
 
-    private LocalDate issuePlanDate;
+    private LocalDate receiptPlanDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
@@ -42,10 +42,10 @@ public class ProductionPlanningReport extends BaseTimeEntity {
     private Integer safeItemCount;
 
     @Builder
-    public ProductionPlanningReport(Long productionPlanningReportId, LocalDate productionPlanningDate, LocalDate issuePlanDate, Product product, Long quantity, MrpOutput mrpOutput, Integer safeItemCount) {
+    public ProductionPlanningReport(Long productionPlanningReportId, LocalDate productionPlanningDate, LocalDate receiptPlanDate, Product product, Long quantity, MrpOutput mrpOutput, Integer safeItemCount) {
         this.productionPlanningReportId = productionPlanningReportId;
         this.productionPlanningDate = productionPlanningDate;
-        this.issuePlanDate = issuePlanDate;
+        this.receiptPlanDate = receiptPlanDate;
         this.product = product;
         this.quantity = quantity;
         this.mrpOutput = mrpOutput;

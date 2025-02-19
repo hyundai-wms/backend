@@ -28,7 +28,9 @@ public class MrpOutput extends BaseTimeEntity {
 
     private String mrpOutputCode;
 
-    private String createdDate;
+    private LocalDate createdDate;
+
+    private LocalDate dueDate;
 
     private LocalDate orderedDate;
 
@@ -54,7 +56,8 @@ public class MrpOutput extends BaseTimeEntity {
     @Builder
     public MrpOutput(Long mrpOutputId,
             String mrpOutputCode,
-            String createdDate,
+            LocalDate createdDate,
+            LocalDate dueDate,
             LocalDate orderedDate,
             Boolean canOrder,
             Boolean isOrdered
@@ -62,6 +65,7 @@ public class MrpOutput extends BaseTimeEntity {
         this.mrpOutputId = mrpOutputId;
         this.mrpOutputCode = mrpOutputCode;
         this.createdDate = createdDate;
+        this.dueDate = dueDate;
         this.orderedDate = orderedDate;
         this.canOrder = canOrder;
         this.isOrdered = isOrdered;
