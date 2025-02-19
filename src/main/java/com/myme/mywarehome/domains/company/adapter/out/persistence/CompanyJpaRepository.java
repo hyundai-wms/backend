@@ -1,6 +1,7 @@
 package com.myme.mywarehome.domains.company.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.company.application.domain.Company;
+import com.myme.mywarehome.domains.product.application.domain.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,7 +27,7 @@ public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT DISTINCT c FROM Company c JOIN FETCH c.productList p " +
+    @Query("SELECT p FROM Product p JOIN FETCH p.company c " +
             "WHERE c.isVendor = false " +
             "AND (" +
             "   CASE WHEN (COALESCE(:productNumber, '') != '' OR COALESCE(:productName, '') != '') "
@@ -38,7 +39,7 @@ public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
             "   ELSE true END" +
             ") " +
             "AND (COALESCE(:applicableEngine, '') = '' OR p.applicableEngine LIKE CONCAT('%', :applicableEngine, '%'))")
-    Page<Company> findInhouseByConditions(
+    Page<Product> findInhouseByConditions(
             @Param("productNumber") String productNumber,
             @Param("productName") String productName,
             @Param("applicableEngine") String applicableEngine,

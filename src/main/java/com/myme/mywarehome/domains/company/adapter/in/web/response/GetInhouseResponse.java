@@ -7,19 +7,19 @@ import org.springframework.data.domain.Page;
 
 public record GetInhouseResponse(
         List<InhouseInfo> content,
-        int pageNumber,
-        int pageSize,
-        long totalItems,
-        int totalPages,
-        boolean isFirst,
-        boolean isLast
+        Integer pageNumber,
+        Integer pageSize,
+        Long totalElements,
+        Integer totalPages,
+        Boolean isFirst,
+        Boolean isLast
 ) {
     public record InhouseInfo(
             String productNumber,
             String productName,
             String applicableEngine,
-            int leadTime,
-            int eachCount
+            Integer leadTime,
+            Integer eachCount
     ) {
         public static InhouseInfo from(Product product) {
             return new InhouseInfo(
@@ -32,10 +32,9 @@ public record GetInhouseResponse(
         }
     }
 
-    public static GetInhouseResponse from(Page<Company> page) {
+    public static GetInhouseResponse from(Page<Product> page) {
         List<InhouseInfo> content = page.getContent()
                 .stream()
-                .flatMap(company -> company.getProductList().stream())
                 .map(InhouseInfo::from)
                 .toList();
 
