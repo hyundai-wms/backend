@@ -228,7 +228,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
             addProduct(products, "50300", engineType, engineName, "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
         } else if (engineType.equals("03")) {
             // Kappa 엔진을 처리할 때만 공용 EGR 모듈 생성
-            addProduct(products, "50300", "02", "Kappa/Nu 공용", "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
+            addProduct(products, "50300", "02", "Kappa/Nu 엔진", "EGR 모듈", companyMap.get("BorgWarner"), 1, 3);
         }
 
         // 4. Ignition Module
@@ -278,6 +278,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
     private void addProduct(List<Product> products, String basePartNum, String engineType, String engineName,
                             String productName, Company company, int bomQuantity, int leadTime) {  // eachCount를 bomQuantity로 이름만 변경
 
+        // BOM depth에 따른 보관 수량 결정
         // BOM depth에 따른 보관 수량 결정
         int eachCount;
 
@@ -371,9 +372,9 @@ public class InitDataForProdConfig implements CommandLineRunner {
 
     private void createCommonParts(List<Product> products, Map<String, Company> companyMap) {
         // Common parts with engine type "01"
-        addProduct(products, "40100", "01", "Kappa/Gamma/Nu 엔진", "워터펌프 어셈블리", companyMap.get("Aisin"), 1, 3); // 정밀가공
+        addProduct(products, "40100", "00", "Kappa/Gamma 엔진", "워터펌프 어셈블리", companyMap.get("Aisin"), 1, 3); // 정밀가공
         addProduct(products, "40210", "01", "Kappa/Gamma/Nu 엔진", "서모스탯", companyMap.get("대원산업"), 1, 1); // 단순조립
-        addProduct(products, "40300", "01", "Kappa/Gamma/Nu 엔진", "냉각수 호스 세트", companyMap.get("동아튜브"), 1, 1); // 단순조립
+        addProduct(products, "40300", "02", "Kappa/Nu 엔진", "냉각수 호스 세트", companyMap.get("동아튜브"), 1, 1); // 단순조립
         addProduct(products, "30310", "01", "Kappa/Gamma/Nu 엔진", "오일 필터", companyMap.get("한국필터"), 1, 1); // 단순조립
         addProduct(products, "20300", "01", "Kappa/Gamma/Nu 엔진", "타이밍 모듈", companyMap.get("Continental"), 1, 3); // 정밀가공
     }
@@ -501,7 +502,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
             if (engineType.equals("05") || engineType.equals("06")) {
                 components.add(new String[]{"40100", "1", engineType}); // 전용 워터펌프
             } else {
-                components.add(new String[]{"40100", "1", "01"}); // 공용 워터펌프
+                components.add(new String[]{"40100", "1", "00"}); // 공용 워터펌프
             }
 
             // 서모스탯과 냉각수 호스 처리
@@ -511,7 +512,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
                 components.add(new String[]{"40400", "1"}); // 보조 냉각 모듈
             } else {
                 components.add(new String[]{"40210", "1", "01"}); // 공용 서모스탯
-                components.add(new String[]{"40300", "1", engineType.equals("04") ? "04" : "01"}); // 호스
+                components.add(new String[]{"40300", "1", engineType.equals("04") ? "04" : "02"}); // 호스
             }
 
             addModuleComponents(bomTrees, productMap, coolingModule, engineType,
