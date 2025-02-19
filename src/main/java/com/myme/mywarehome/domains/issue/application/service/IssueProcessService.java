@@ -8,6 +8,7 @@ import com.myme.mywarehome.domains.issue.application.domain.Issue;
 import com.myme.mywarehome.domains.issue.application.domain.IssuePlan;
 import com.myme.mywarehome.domains.issue.application.port.in.IssueProcessUseCase;
 import com.myme.mywarehome.domains.issue.application.port.in.command.IssueProcessCommand;
+import com.myme.mywarehome.domains.issue.application.port.in.event.IssuePlanStatusChangedEvent;
 import com.myme.mywarehome.domains.issue.application.port.in.event.IssueStockAssignEvent;
 import com.myme.mywarehome.domains.issue.application.port.out.CreateIssuePort;
 import com.myme.mywarehome.domains.issue.application.port.out.GetIssuePlanPort;
@@ -64,9 +65,17 @@ public class IssueProcessService implements IssueProcessUseCase {
         CompletableFuture<Stock> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new IssueStockAssignEvent(createdIssue, stockId, future));
 
+
         try {
             Stock stock = future.get(5, TimeUnit.SECONDS);
             // Todo: stock으로 추가 검증이 필요하다면 여기서 수행
+
+            // 6. IssuePlan 상태 변경 이벤트 발생
+            eventPublisher.publishEvent(new IssuePlanStatusChangedEvent(
+                    issuePlan.getIssuePlanId(),
+                    selectedDate,
+                    "ISSUE_PROCESSED"
+            ));
         } catch (Exception e) {
             throw new StockAssignTimeoutException();
         }
@@ -74,6 +83,8 @@ public class IssueProcessService implements IssueProcessUseCase {
         return createdIssue;
 
     }
+
+
 }
 
 
