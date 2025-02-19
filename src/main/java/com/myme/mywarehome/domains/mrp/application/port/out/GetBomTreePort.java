@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface GetBomTreePort {
     List<BomTree> findAllByApplicableEngine(String applicableEngine);
+    List<BomTree> findAllByParentNumber(String parentProductNumber);
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -40,4 +41,8 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
         GROUP BY p.productId, p.productNumber, p.productName, bt.childCompositionRatio, p.eachCount, p.leadTime
     """)
     List<ProductStockCount> findAllProductsWithAvailableStockCount();
+
+    @Modifying
+    @Query("UPDATE Product p SET p.safeItemCount = :safeItemCount WHERE p.productNumber = :productNumber")
+    void updateSafeItemCount(String productNumber, Integer safeItemCount);
 }

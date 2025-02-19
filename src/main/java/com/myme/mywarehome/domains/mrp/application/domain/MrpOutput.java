@@ -125,6 +125,7 @@ public class MrpOutput extends BaseTimeEntity {
     // 생산/발주 지시 성공 시
     public void orderSuccess() {
         this.isOrdered = true;
+        this.canOrder = false;
         this.orderedDate = LocalDate.now();
     }
 

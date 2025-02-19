@@ -8,6 +8,8 @@ import com.myme.mywarehome.domains.mrp.application.domain.PurchaseOrderReport;
 import com.myme.mywarehome.domains.mrp.application.exception.MrpCannotOrderException;
 import com.myme.mywarehome.domains.mrp.application.exception.MrpOutputNotFoundException;
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpOrderUseCase;
+import com.myme.mywarehome.domains.mrp.application.port.in.event.CreatePlanFromMrpEvent;
+import com.myme.mywarehome.domains.mrp.application.port.in.event.UpdateSafetyStockFromMrpEvent;
 import com.myme.mywarehome.domains.mrp.application.port.out.GetBomTreePort;
 import com.myme.mywarehome.domains.mrp.application.port.out.GetMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.port.out.UpdateMrpOutputPort;
@@ -15,18 +17,22 @@ import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPl
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MrpOrderService implements MrpOrderUseCase {
     private final GetMrpOutputPort getMrpOutputPort;
     private final GetBomTreePort getBomTreePort;
     private final UpdateMrpOutputPort updateMrpOutputPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -56,9 +62,16 @@ public class MrpOrderService implements MrpOrderUseCase {
         // 엔진 출고 계획 생성
         issuePlanCommands.addAll(createEngineIssuePlanCommands(mrpOutput));
 
-        // 4. ApplicationEventPublisher로 이벤트 발행은 나중에 구현
+        // 4. 입고/출고 계획 생성 Bulk 이벤트 발행
+        eventPublisher.publishEvent(new CreatePlanFromMrpEvent(receiptPlanCommands, issuePlanCommands));
 
-        // 5. 생성 완료 시 isOrdered를 true로 변경 및 생산/발주 지시 성공
+        // 5. 안전 재고 추가 이벤트 발행
+        eventPublisher.publishEvent(new UpdateSafetyStockFromMrpEvent(
+                mrpOutput.getPurchaseOrderReportList(),
+                mrpOutput.getProductionPlanningReportList()
+        ));
+
+        // 6. 생성 완료 시 isOrdered를 true로 변경 및 생산/발주 지시 성공
         mrpOutput.orderSuccess();
         updateMrpOutputPort.orderSuccess(mrpOutput);
     }
@@ -83,8 +96,8 @@ public class MrpOrderService implements MrpOrderUseCase {
 
         for (ProductionPlanningReport report : productionPlanningReports) {
             // 각 ProductionPlanningReport의 product에 대해 BomTree 조회
-            List<BomTree> childBomTrees = getBomTreePort.findAllByApplicableEngine(
-                    report.getProduct().getApplicableEngine());
+            List<BomTree> childBomTrees = getBomTreePort.findAllByParentNumber(
+                    report.getProduct().getProductNumber());
 
             // 하위 부품들에 대한 출고 계획 생성
             List<IssuePlanCommand> childIssuePlans = childBomTrees.stream()

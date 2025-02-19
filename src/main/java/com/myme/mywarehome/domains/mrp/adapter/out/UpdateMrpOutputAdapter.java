@@ -23,10 +23,6 @@ public class UpdateMrpOutputAdapter implements UpdateMrpOutputPort {
             throw new MrpCannotOrderException();
         }
 
-        if (mrpOutput.getIsOrdered()) {
-            throw new MrpCannotOrderException();
-        }
-
         mrpOutputJpaRepository.save(mrpOutput);
     }
 }

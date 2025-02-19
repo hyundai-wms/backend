@@ -15,6 +15,19 @@ public class GetMrpOutputAdapter implements GetMrpOutputPort {
 
     @Override
     public Optional<MrpOutput> getMrpOutputByMrpOutputId(Long mrpOutputId) {
-        return mrpOutputJpaRepository.findById(mrpOutputId);
+        Optional<MrpOutput> resultWithPurchase = mrpOutputJpaRepository.findByMrpOutputIdWithPurchaseOrders(mrpOutputId);
+        if (resultWithPurchase.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<MrpOutput> resultWithProduction = mrpOutputJpaRepository.findByMrpOutputIdWithProductionPlans(mrpOutputId);
+        if (resultWithProduction.isEmpty()) {
+            return Optional.empty();
+        }
+
+        MrpOutput output = resultWithPurchase.get();
+        output.assignWithProductionPlanningReports(resultWithProduction.get().getProductionPlanningReportList());
+
+        return Optional.of(output);
     }
 }
