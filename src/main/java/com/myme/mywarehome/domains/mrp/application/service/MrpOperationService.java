@@ -54,6 +54,8 @@ public class MrpOperationService implements MrpOperationUseCase {
 
         // 4. 결과 저장
         mrpOutputUseCase.saveResults(result);
+
+        // todo: 5. 보고서 생성(Apache POI) -> S3 저장
     }
 
 }

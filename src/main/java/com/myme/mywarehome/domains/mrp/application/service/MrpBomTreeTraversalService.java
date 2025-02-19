@@ -10,17 +10,14 @@ import com.myme.mywarehome.domains.mrp.application.service.dto.MrpCalculateResul
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpContextDto;
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpNodeDto;
 import com.myme.mywarehome.domains.mrp.application.service.dto.UnifiedBomDataDto;
-import com.myme.mywarehome.domains.product.application.domain.Product;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
@@ -28,8 +25,7 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
 
     @Override
     public MrpCalculateResultDto traverse(UnifiedBomDataDto unifiedBomData, MrpContextDto context) {
-        Queue<MrpNodeDto> productQueue = new LinkedList<>();
-        Set<Long> visited = new HashSet<>();
+        LinkedList<MrpNodeDto> productDeque = new LinkedList<>();
         List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
         List<ProductionPlanningReport> productionReports = new ArrayList<>();
         List<MrpExceptionReport> exceptionReports = new ArrayList<>();
@@ -39,50 +35,29 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                 unifiedBomData.virtualRoot(),
                 1  // 가상 루트의 수량은 1
         );
-        productQueue.offer(rootNode);
+        productDeque.offerLast(rootNode);
 
-        while (!productQueue.isEmpty()) {
-            MrpNodeDto currentNode = productQueue.poll();
-            Long currentProductId = currentNode.product().getProductId();
+        while (!productDeque.isEmpty()) {
+            MrpNodeDto currentNode = productDeque.pollFirst();
 
-            // 이미 방문한 노드는 건너뛰되, 공통 부품이면 수량을 누적
-            if (visited.contains(currentProductId)) {
-                if (isCommonPart(currentNode.product())) {
-                    // 공통 부품의 경우 이전 계산 결과에 현재 수량을 더해서 재계산
-                    MrpCalculateResultDto additionalResult = mrpCalculatorUseCase.calculate(currentNode, context);
-                    if (additionalResult.hasExceptions()) {
-                        return additionalResult;
-                    }
-                    purchaseReports.addAll(additionalResult.purchaseOrderReports());
-                    productionReports.addAll(additionalResult.productionPlanningReports());
-                }
+            // 가상 루트는 건너뛰기
+            if (currentNode.product().getProductNumber().equals("VIRTUAL-ROOT")) {
+                // 자식 노드들만 큐에 추가
+                processChildNodes(currentNode, unifiedBomData, productDeque);
                 continue;
             }
 
-            // 현재 노드가 가상 루트가 아닌 경우에만 계산 수행
-            if (!currentNode.product().getProductNumber().equals("VIRTUAL-ROOT")) {
-                MrpCalculateResultDto result = mrpCalculatorUseCase.calculate(currentNode, context);
-                if (result.hasExceptions()) {
-                    return result;
-                }
-                purchaseReports.addAll(result.purchaseOrderReports());
-                productionReports.addAll(result.productionPlanningReports());
+            // 실제 제품 노드 처리
+            MrpCalculateResultDto result = mrpCalculatorUseCase.calculate(currentNode, context);
+            if (result.hasExceptions()) {
+                return result;
             }
 
-            visited.add(currentProductId);
+            purchaseReports.addAll(result.purchaseOrderReports());
+            productionReports.addAll(result.productionPlanningReports());
 
-            // 자식 노드들 큐에 추가
-            List<BomTree> children = unifiedBomData.bomTreeMap()
-                    .getOrDefault(currentProductId, Collections.emptyList());
-
-            for (BomTree child : children) {
-                long requiredCount = currentNode.requiredPartsCount() * child.getChildCompositionRatio();
-                MrpNodeDto childNode = new MrpNodeDto(
-                        child.getChildProduct(),
-                        requiredCount
-                );
-                productQueue.offer(childNode);
-            }
+            // 자식 노드들 처리
+            processChildNodes(currentNode, unifiedBomData, productDeque);
         }
 
         return new MrpCalculateResultDto(
@@ -93,9 +68,35 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
         );
     }
 
-    private boolean isCommonPart(Product product) {
-        String productNumber = product.getProductNumber();
-        return productNumber.endsWith("01P00") || productNumber.endsWith("02P00");
+    private void processChildNodes(MrpNodeDto parentNode, UnifiedBomDataDto unifiedBomData, LinkedList<MrpNodeDto> deque) {
+        List<BomTree> children = unifiedBomData.bomTreeMap()
+                .getOrDefault(parentNode.product().getProductId(), Collections.emptyList());
+
+        for (BomTree child : children) {
+            long requiredCount = parentNode.requiredPartsCount() * child.getChildCompositionRatio();
+            MrpNodeDto childNode = new MrpNodeDto(
+                    child.getChildProduct(),
+                    requiredCount
+            );
+
+            // 같은 품번이 있는지 검사 (같은 레벨 내에서)
+            int duplicateIndex = -1;
+            for (int i = 0; i < deque.size(); i++) {
+                MrpNodeDto node = deque.get(i);
+                if (node.product().getProductNumber().equals(childNode.product().getProductNumber())) {
+                    duplicateIndex = i;
+                    break;
+                }
+            }
+
+            if (duplicateIndex != -1) {
+                // 중복된 품번이 있으면, 해당 노드 바로 뒤에 삽입
+                deque.add(duplicateIndex + 1, childNode);
+            } else {
+                // 없으면 맨 뒤에 추가
+                deque.addLast(childNode);
+            }
+        }
     }
 
 }

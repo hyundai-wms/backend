@@ -54,11 +54,12 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
         // 1. Y, Y', Y'' 계산
         long requiredCount = mrpNode.requiredPartsCount();  // Y (기본 필요 수량)
         double safetyIncludedCount = requiredCount * 1.1;  // Y' (안전재고 포함)
-        int safetyStock = (int) (requiredCount * 0.1);     // 안전재고 수량
+        double safetyStockCount = requiredCount * 0.1; // 안전재고 수량
 
         // Y'' (EA 조정된 수량) 계산
         int eachCount = product.getEachCount();
         long adjustedCount = (long) Math.ceil(safetyIncludedCount / eachCount) * eachCount;
+        int safetyStock = (int) Math.ceil(safetyStockCount / eachCount);
 
         // 2. 현재 재고 확인 및 필요 수량(N) 계산
         InventoryRecordItem inventoryItem = context.getInventoryRecord().get(product.getProductId());
@@ -73,7 +74,7 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
         long orderQuantity = neededCount / eachCount;       // X (발주/생산 수량)
 
         // 3. 리드타임 계산 및 날짜 검증
-        long totalLeadTimeSeconds = (long) neededCount * product.getLeadTime();
+        long totalLeadTimeSeconds = neededCount * product.getLeadTime();
         int leadTimeDays = (int) Math.ceil(totalLeadTimeSeconds / (24.0 * 60 * 60));
 
         LocalDate startDate = context.getComputedDate().minusDays(leadTimeDays);
@@ -83,7 +84,7 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
             MrpExceptionReport exceptionReport = MrpExceptionReport.builder()
                     .exceptionType("LEAD_TIME_VIOLATION")
                     .exceptionMessage(String.format(
-                            "Product %s requires %d days lead time, which would start from %s (past date)",
+                            "제품 %s는 %d일의 리드타임(LT)이 필요하며, %s부터 시작됩니다.",
                             product.getProductNumber(), leadTimeDays, startDate))
                     .build();
             return MrpCalculateResultDto.withException(exceptionReport);
@@ -97,7 +98,7 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
             MrpExceptionReport exceptionReport = MrpExceptionReport.builder()
                     .exceptionType("BIN_CAPACITY_EXCEEDED")
                     .exceptionMessage(String.format(
-                            "Product %s requires %d bins but only %d available",
+                            "제품 %s는 총 %d개의 Bin이 필요하지만 현재 %d개의 Bin만 사용 가능합니다.",
                             product.getProductNumber(), totalBinsNeeded, availableBins))
                     .build();
             return MrpCalculateResultDto.withException(exceptionReport);
