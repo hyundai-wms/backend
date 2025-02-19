@@ -43,7 +43,7 @@ public class MrpOperationService implements MrpOperationUseCase {
                                 item -> item.getProduct().getProductId(),
                                 item -> item
                         )))
-                .computedDate(command.dueDate())
+                .computedDate(command.dueDate().minusDays(1)) // 납기일 하루 전 날 모든 부품 완성
                 .build();
 
         // 2. 통합 BOM Tree 생성
@@ -53,9 +53,7 @@ public class MrpOperationService implements MrpOperationUseCase {
         MrpCalculateResultDto result = mrpBomTreeTraversalUseCase.traverse(unifiedBomData, context);
 
         // 4. 결과 저장
-        mrpOutputUseCase.saveResults(result);
-
-        // todo: 5. 보고서 생성(Apache POI) -> S3 저장
+        mrpOutputUseCase.saveResults(command, result);
     }
 
 }

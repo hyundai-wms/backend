@@ -25,4 +25,9 @@ public class GetBomTreeAdapter implements GetBomTreePort {
                 .map(product -> bomTreeJpaRepository.findAllByRootProduct(product.getProductNumber()))
                 .orElse(Collections.emptyList());
     }
+
+    @Override
+    public List<BomTree> findAllByParentNumber(String parentProductNumber) {
+        return bomTreeJpaRepository.findAllByParentProductNumber(parentProductNumber);
+    }
 }

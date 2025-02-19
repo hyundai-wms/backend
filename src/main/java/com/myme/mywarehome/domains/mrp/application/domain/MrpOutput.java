@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 @Entity
 @Getter
@@ -28,7 +29,17 @@ public class MrpOutput extends BaseTimeEntity {
 
     private String mrpOutputCode;
 
-    private String createdDate;
+    private LocalDate createdDate;
+
+    private Integer kappaCount;
+
+    private Integer gammaCount;
+
+    private Integer nuCount;
+
+    private Integer thetaCount;
+
+    private LocalDate dueDate;
 
     private LocalDate orderedDate;
 
@@ -54,17 +65,27 @@ public class MrpOutput extends BaseTimeEntity {
     @Builder
     public MrpOutput(Long mrpOutputId,
             String mrpOutputCode,
-            String createdDate,
+            LocalDate createdDate,
+            LocalDate dueDate,
             LocalDate orderedDate,
             Boolean canOrder,
-            Boolean isOrdered
+            Boolean isOrdered,
+            Integer kappaCount,
+            Integer gammaCount,
+            Integer nuCount,
+            Integer thetaCount
     ) {
         this.mrpOutputId = mrpOutputId;
         this.mrpOutputCode = mrpOutputCode;
         this.createdDate = createdDate;
+        this.dueDate = dueDate;
         this.orderedDate = orderedDate;
         this.canOrder = canOrder;
         this.isOrdered = isOrdered;
+        this.kappaCount = kappaCount;
+        this.gammaCount = gammaCount;
+        this.nuCount = nuCount;
+        this.thetaCount = thetaCount;
     }
 
     // 새로운 코드 부여
@@ -99,6 +120,13 @@ public class MrpOutput extends BaseTimeEntity {
 
     public void addMrpExceptionReportLink(String mrpExceptionReportLink) {
         this.mrpExceptionReportLink = mrpExceptionReportLink;
+    }
+
+    // 생산/발주 지시 성공 시
+    public void orderSuccess() {
+        this.isOrdered = true;
+        this.canOrder = false;
+        this.orderedDate = LocalDate.now();
     }
 
 }
