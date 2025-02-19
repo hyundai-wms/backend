@@ -45,7 +45,6 @@ public class ReceiptPlan extends BaseTimeEntity {
         this.receiptPlanCode = receiptPlanCode;
         this.receiptPlanItemCount = receiptPlanItemCount;
         this.receiptPlanDate = receiptPlanDate;
-        this.product = product;
     }
 
     // 새로운 코드 부여

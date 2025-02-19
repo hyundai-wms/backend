@@ -53,7 +53,7 @@ public class MrpOperationService implements MrpOperationUseCase {
         MrpCalculateResultDto result = mrpBomTreeTraversalUseCase.traverse(unifiedBomData, context);
 
         // 4. 결과 저장
-        mrpOutputUseCase.saveResults(command.dueDate(), result);
+        mrpOutputUseCase.saveResults(command, result);
     }
 
 }

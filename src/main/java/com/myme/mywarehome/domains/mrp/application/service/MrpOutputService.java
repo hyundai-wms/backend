@@ -4,11 +4,11 @@ import com.myme.mywarehome.domains.mrp.application.domain.MrpOutput;
 import com.myme.mywarehome.domains.mrp.application.domain.ProductionPlanningReport;
 import com.myme.mywarehome.domains.mrp.application.domain.PurchaseOrderReport;
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpOutputUseCase;
+import com.myme.mywarehome.domains.mrp.application.port.in.command.MrpInputCommand;
 import com.myme.mywarehome.domains.mrp.application.port.out.CreateMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.port.out.CreateMrpReportFilePort;
 import com.myme.mywarehome.domains.mrp.application.port.out.UpdateMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpCalculateResultDto;
-import com.myme.mywarehome.infrastructure.util.helper.DateFormatHelper;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -35,12 +35,12 @@ public class MrpOutputService implements MrpOutputUseCase {
 
     @Override
     @Transactional
-    public void saveResults(LocalDate dueDate, MrpCalculateResultDto result) {
+    public void saveResults(MrpInputCommand command, MrpCalculateResultDto result) {
         // 이전 주문들 비활성화
         updateMrpOutputPort.deactivatePreviousOrders();
 
         if (result.hasExceptions()) {
-            handleExceptionResult(dueDate, result);
+            handleExceptionResult(command, result);
             return;
         }
 
@@ -52,9 +52,13 @@ public class MrpOutputService implements MrpOutputUseCase {
         // MrpOutput 생성 및 저장
         MrpOutput mrpOutput = MrpOutput.builder()
                 .createdDate(LocalDate.now())
-                .dueDate(dueDate)
+                .dueDate(command.dueDate())
                 .canOrder(true)
                 .isOrdered(false)
+                .kappaCount(command.engineCountMap().get("kappa"))
+                .gammaCount(command.engineCountMap().get("gamma"))
+                .nuCount(command.engineCountMap().get("nu"))
+                .thetaCount(command.engineCountMap().get("theta"))
                 .build();
 
         mrpOutput.assignWithPurchaseOrderReports(optimizedPurchaseReports);
@@ -141,13 +145,17 @@ public class MrpOutputService implements MrpOutputUseCase {
         return optimized;
     }
 
-    private void handleExceptionResult(LocalDate dueDate, MrpCalculateResultDto result) {
+    private void handleExceptionResult(MrpInputCommand command, MrpCalculateResultDto result) {
 
         MrpOutput mrpOutput = MrpOutput.builder()
                 .createdDate(LocalDate.now())
-                .dueDate(dueDate)
+                .dueDate(command.dueDate())
                 .canOrder(false)
                 .isOrdered(false)
+                .kappaCount(command.engineCountMap().get("kappa"))
+                .gammaCount(command.engineCountMap().get("gamma"))
+                .nuCount(command.engineCountMap().get("nu"))
+                .thetaCount(command.engineCountMap().get("theta"))
                 .build();
 
         mrpOutput.assignWithMrpExceptionReports(result.mrpExceptionReports());
