@@ -13,8 +13,6 @@ public class DownloadMrpReportService implements DownloadMrpReportUseCase {
 
     @Override
     public Resource downloadReport(String mrpOutputCode, String reportType) {
-        // todo : report가 있는지 검증
-
         // S3 key 구성
         String fileKey = generateS3Key(mrpOutputCode, reportType);
 
