@@ -87,4 +87,18 @@ public class MrpOutput extends BaseTimeEntity {
         this.mrpExceptionReportList = reports;
         reports.forEach(report -> report.connectWithMrpOutput(this));
     }
+
+    // 링크 업데이트
+    public void addPurchaseOrderReportLink(String purchaseOrderReportLink) {
+        this.purchaseOrderReportLink = purchaseOrderReportLink;
+    }
+
+    public void addProductionPlanningReportLink(String productionPlanningReportLink) {
+        this.productionPlanningReportLink = productionPlanningReportLink;
+    }
+
+    public void addMrpExceptionReportLink(String mrpExceptionReportLink) {
+        this.mrpExceptionReportLink = mrpExceptionReportLink;
+    }
+
 }

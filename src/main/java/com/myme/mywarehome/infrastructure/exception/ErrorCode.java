@@ -53,8 +53,9 @@ public enum ErrorCode {
     STOCK_ASSIGN_TIMEOUT(408, "S003", "재고 할당 처리 시간이 초과되었습니다."),
     STOCK_NOT_FOUND(404, "S004", "해당 재고를 찾을 수 없습니다."),
 
-    // BomTree
+    // MRP
     ENGINE_NOT_FOUND(404, "M001", "해당 엔진 정보를 찾을 수 없습니다."),
+    MRP_REPORT_CREATE_FAILED(500, "M002", "MRP 보고서를 생성하는데 실패하였습니다."),
     ;
 
 

@@ -61,4 +61,7 @@ jobs:
               -e DB_URL=${{ secrets.DB_URL }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e MYWHME_AWS_S3_BUCKET=${{ secrets.MYWHME_AWS_S3_BUCKET }} \
+              -e MYWHME_AWS_ACCESS_KEY=${{ secrets.MYWHME_AWS_ACCESS_KEY }} \
+              -e MYWHME_AWS_SECRET_KEY=${{ secrets.MYWHME_AWS_SECRET_KEY }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest

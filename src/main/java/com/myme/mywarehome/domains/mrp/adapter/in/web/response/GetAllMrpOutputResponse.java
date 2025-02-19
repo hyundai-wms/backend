@@ -38,9 +38,9 @@ public record GetAllMrpOutputResponse(
                     DateFormatHelper.formatDate(output.getOrderedDate()),
                     output.getIsOrdered(),
                     output.getCanOrder(),
-                    null,  // orderPlanReportDownloadLink
-                    null,  // productPlanReportDownloadLink
-                    null,  // exceptionReportDownloadLink
+                    output.getPurchaseOrderReportLink(),
+                    output.getProductionPlanningReportLink(),
+                    output.getMrpExceptionReportLink(),
                     output.getCreatedAt(),
                     output.getUpdatedAt()
             );
