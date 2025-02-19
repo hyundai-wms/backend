@@ -19,6 +19,7 @@ import java.util.function.BiPredicate;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -28,6 +29,9 @@ public class MrpOutputService implements MrpOutputUseCase {
     private final CreateMrpOutputPort createMrpOutputPort;
     private final UpdateMrpOutputPort updateMrpOutputPort;
     private final CreateMrpReportFilePort createMrpReportFilePort;
+
+    @Value("${spring.profiles.active:}")
+    private String activeProfile;
 
     @Override
     @Transactional
@@ -63,8 +67,13 @@ public class MrpOutputService implements MrpOutputUseCase {
         );
 
         // Excel 파일 생성 및 S3 업로드
-        String purchaseOrderReportLink = createMrpReportFilePort.createAndUploadPurchaseOrderReport(mrpOutput, optimizedPurchaseReports);
-        String productionPlanningReportLink = createMrpReportFilePort.createAndUploadProductionPlanningReport(mrpOutput, optimizedProductionReports);
+        String purchaseOrderReportLink = null;
+        String productionPlanningReportLink = null;
+
+        if ("prod".equals(activeProfile)) {
+            purchaseOrderReportLink = createMrpReportFilePort.createAndUploadPurchaseOrderReport(mrpOutput, optimizedPurchaseReports);
+            productionPlanningReportLink = createMrpReportFilePort.createAndUploadProductionPlanningReport(mrpOutput, optimizedProductionReports);
+        }
 
         // 생성된 링크 업데이트
         mrpOutput.addPurchaseOrderReportLink(purchaseOrderReportLink);
@@ -149,7 +158,11 @@ public class MrpOutputService implements MrpOutputUseCase {
         );
 
         // Excel 파일 생성 및 S3 업로드
-        String exceptionReportLink = createMrpReportFilePort.createAndUploadMrpExceptionReport(mrpOutput, result.mrpExceptionReports());
+        String exceptionReportLink = null;
+
+        if ("prod".equals(activeProfile)) {
+            exceptionReportLink = createMrpReportFilePort.createAndUploadMrpExceptionReport(mrpOutput, result.mrpExceptionReports());
+        }
 
         // 생성된 링크 업데이트
         mrpOutput.addMrpExceptionReportLink(exceptionReportLink);
