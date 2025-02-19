@@ -14,6 +14,10 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @Table(name="companies")
+@NamedEntityGraph(
+        name = "Company.withProducts",
+        attributeNodes = @NamedAttributeNode("productList")
+)
 public class Company extends BaseTimeEntity {
 
     @Id

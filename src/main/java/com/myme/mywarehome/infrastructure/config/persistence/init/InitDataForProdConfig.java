@@ -26,7 +26,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Profile("prod")
+@Profile("dev")
 public class InitDataForProdConfig implements CommandLineRunner {
     private final CompanyJpaRepository companyJpaRepository;
     private final ProductJpaRepository productJpaRepository;
