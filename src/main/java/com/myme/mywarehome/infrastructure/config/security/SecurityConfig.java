@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers("/v1/auth/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()  // 로그인 경로만 허용
+                                .requestMatchers("/v1/productions/mrp/*/purchase/download", "/v1/productions/mrp/*/production/download", "/v1/productions/mrp/*/exception/download").permitAll()
                                 .requestMatchers("/v1/users/me").hasAnyRole("ADMIN", "MIDDLE_MANAGER", "WMS_MANAGER", "WORKER")
                                 .requestMatchers("/v1/users/**").hasRole("ADMIN")
                                 .requestMatchers(request ->

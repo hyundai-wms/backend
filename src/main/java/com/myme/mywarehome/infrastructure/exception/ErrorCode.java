@@ -52,6 +52,12 @@ public enum ErrorCode {
     STOCK_ALREADY_ISSUED(409, "I004", "이미 출고 처리된 재고입니다."),
     STOCK_ASSIGN_TIMEOUT(408, "S003", "재고 할당 처리 시간이 초과되었습니다."),
     STOCK_NOT_FOUND(404, "S004", "해당 재고를 찾을 수 없습니다."),
+
+    // MRP
+    ENGINE_NOT_FOUND(404, "M001", "해당 엔진 정보를 찾을 수 없습니다."),
+    MRP_REPORT_CREATE_FAILED(500, "M002", "MRP 보고서를 생성하는데 실패하였습니다."),
+    MRP_OUTPUT_NOT_FOUND(404, "M003", "해당 MRP 동작 결과를 찾을 수 없습니다."),
+    MRP_CANNOT_ORDER(400, "M004", "해당 MRP 결과는 발주/생산 지시를 할 수 없습니다."),
     ;
 
 

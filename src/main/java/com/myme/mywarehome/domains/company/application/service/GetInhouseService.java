@@ -17,7 +17,7 @@ public class GetInhouseService implements GetInhouseUseCase {
     private final GetInhousePort getInhousePort;
 
     @Override
-    public Page<Company> getInhouses(String productNumber, String productName, String applicableEngine, Pageable pageable) {
+    public Page<Product> getInhouses(String productNumber, String productName, String applicableEngine, Pageable pageable) {
         return getInhousePort.findInhouseByConditions(productNumber, productName, applicableEngine, pageable);
     }
 
