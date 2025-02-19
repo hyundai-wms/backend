@@ -64,7 +64,7 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
             // S3 업로드
             uploadToS3(workbook, key);
 
-            return baseUrl + "/" + mrpOutput.getMrpOutputCode() + "/purchase";
+            return baseUrl + "/v1/productions/mrp/" + mrpOutput.getMrpOutputCode() + "/purchase/download";
         } catch (Exception e) {
             log.error("Failed to create purchase order report", e);
             throw new MrpReportFileCreationException();
@@ -96,7 +96,7 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
             String key = generateFileKey(mrpOutput.getMrpOutputCode(), "production_planning_report");
             uploadToS3(workbook, key);
 
-            return baseUrl + "/" + mrpOutput.getMrpOutputCode() + "/production";
+            return baseUrl + "/v1/productions/mrp/" + mrpOutput.getMrpOutputCode() + "/production/download";
         } catch (Exception e) {
             log.error("Failed to create production planning report", e);
             throw new MrpReportFileCreationException();
@@ -124,7 +124,7 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
             String key = generateFileKey(mrpOutput.getMrpOutputCode(), "mrp_exception_report");
             uploadToS3(workbook, key);
 
-            return baseUrl + "/" + mrpOutput.getMrpOutputCode() + "/exception";
+            return baseUrl + "/v1/productions/mrp/" + mrpOutput.getMrpOutputCode() + "/exception/download";
         } catch (Exception e) {
             log.error("Failed to create MRP exception report", e);
             throw new MrpReportFileCreationException();
