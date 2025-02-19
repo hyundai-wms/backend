@@ -12,9 +12,18 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
     // Todo: mybatis로 변경
-    @Query("SELECT c FROM Company c WHERE c.isVendor = true " +
-            "AND (c.companyCode LIKE CONCAT('%' , COALESCE(:code, ''), '%')" +
-            "OR c.companyName LIKE CONCAT('%' , COALESCE(:name, ''), '%'))")
+    @Query("""
+    SELECT c FROM Company c 
+    WHERE c.isVendor = true 
+    AND (
+        COALESCE(:code, '') = '' AND COALESCE(:name, '') = ''
+        OR
+        (COALESCE(:code, '') <> '' AND c.companyCode LIKE %:code%)
+        OR 
+        (COALESCE(:name, '') <> '' AND c.companyName LIKE %:name%)
+    )
+    ORDER BY c.createdAt DESC
+""")
     Page<Company> findVendorsByConditions(
             @Param("code") String code,
             @Param("name") String name,
