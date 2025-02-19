@@ -2,6 +2,7 @@ package com.myme.mywarehome.domains.mrp.application.domain;
 
 import com.myme.mywarehome.infrastructure.common.jpa.BaseTimeEntity;
 import com.myme.mywarehome.infrastructure.util.helper.StringHelper.CodeGenerator;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,6 +34,8 @@ public class MrpOutput extends BaseTimeEntity {
 
     private Boolean canOrder;
 
+    private Boolean isOrdered;
+
     @OneToMany(mappedBy = "mrpOutput")
     private List<PurchaseOrderReport> purchaseOrderReportList;
 
@@ -53,12 +56,15 @@ public class MrpOutput extends BaseTimeEntity {
             String mrpOutputCode,
             String createdDate,
             LocalDate orderedDate,
-            Boolean canOrder) {
+            Boolean canOrder,
+            Boolean isOrdered
+    ) {
         this.mrpOutputId = mrpOutputId;
         this.mrpOutputCode = mrpOutputCode;
         this.createdDate = createdDate;
         this.orderedDate = orderedDate;
         this.canOrder = canOrder;
+        this.isOrdered = isOrdered;
     }
 
     // 새로운 코드 부여
