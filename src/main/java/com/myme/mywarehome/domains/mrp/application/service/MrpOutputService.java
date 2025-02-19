@@ -47,6 +47,7 @@ public class MrpOutputService implements MrpOutputUseCase {
                 .createdDate(DateFormatHelper.formatDate(LocalDate.now()))
                 .orderedDate(LocalDate.now())
                 .canOrder(true)
+                .isOrdered(false)
                 .build();
 
         mrpOutput.assignWithPurchaseOrderReports(optimizedPurchaseReports);
@@ -125,6 +126,7 @@ public class MrpOutputService implements MrpOutputUseCase {
                 .createdDate(DateFormatHelper.formatDate(LocalDate.now()))
                 .orderedDate(LocalDate.now())
                 .canOrder(false)
+                .isOrdered(false)
                 .build();
 
         mrpOutput.assignWithMrpExceptionReports(result.mrpExceptionReports());
