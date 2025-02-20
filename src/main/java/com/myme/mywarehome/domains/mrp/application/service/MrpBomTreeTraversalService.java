@@ -6,12 +6,13 @@ import com.myme.mywarehome.domains.mrp.application.domain.ProductionPlanningRepo
 import com.myme.mywarehome.domains.mrp.application.domain.PurchaseOrderReport;
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpBomTreeTraversalUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpCalculatorUseCase;
-import com.myme.mywarehome.domains.mrp.application.service.dto.MrpCalculateResultDto;
-import com.myme.mywarehome.domains.mrp.application.service.dto.MrpContextDto;
-import com.myme.mywarehome.domains.mrp.application.service.dto.MrpNodeDto;
-import com.myme.mywarehome.domains.mrp.application.service.dto.UnifiedBomDataDto;
+import com.myme.mywarehome.domains.mrp.application.port.in.command.MrpInputCommand;
+import com.myme.mywarehome.domains.mrp.application.service.dto.*;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
     private final MrpCalculatorUseCase mrpCalculatorUseCase;
 
     @Override
-    public MrpCalculateResultDto traverse(UnifiedBomDataDto unifiedBomData, MrpContextDto context) {
+    public MrpCalculateResultDto traverse(MrpInputCommand command, UnifiedBomDataDto unifiedBomData, MrpContextDto context) {
         LinkedList<MrpNodeDto> productDeque = new LinkedList<>();
         List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
         List<ProductionPlanningReport> productionReports = new ArrayList<>();
@@ -33,6 +34,9 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
 
         // vendor 노드들의 계산 결과를 모으기 위한 리스트
         List<MrpCalculateResultDto> vendorResults = new ArrayList<>();
+
+        // 문제가 발생한 노드 저장
+        List<MrpProblemNode> problemNodes = new ArrayList<>();
 
         // 루트 노드로 시작
         MrpNodeDto rootNode = new MrpNodeDto(
@@ -54,7 +58,19 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
             // 실제 제품 노드 처리
             MrpCalculateResultDto result = mrpCalculatorUseCase.calculate(currentNode, context);
             if (result.hasExceptions()) {
-                return result;
+                // 수정: 예외를 바로 반환하지 않고 저장
+                problemNodes.add(new MrpProblemNode(
+                        currentNode.product(),
+                        result.mrpExceptionReports().get(0).getExceptionType(),
+                        result.mrpExceptionReports().get(0).getExceptionMessage(),
+                        currentNode.requiredPartsCount(),
+                        result.leadTimeDays(),
+                        currentNode.product().getBayList().size() * 10
+                ));
+                if (currentNode.product().getCompany().getIsVendor()) {
+                    vendorResults.add(result);
+                }
+                continue;  // 다음 노드로 진행
             }
 
             // vendor인 경우 따로 보관
@@ -68,6 +84,44 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
 
             // 자식 노드들 처리
             processChildNodes(currentNode, unifiedBomData, productDeque);
+        }
+
+        // 문제가 있는 경우
+        if (!problemNodes.isEmpty()) {
+            // vendor의 최대 LT 찾기
+            int maxLeadTime = vendorResults.stream()
+                    .mapToInt(MrpCalculateResultDto::leadTimeDays)
+                    .max()
+                    .orElse(0);
+
+            LocalDate expectedMinOrderDate = context.getComputedDate().minusDays(maxLeadTime);
+
+            long daysBetween = Math.abs(ChronoUnit.DAYS.between(expectedMinOrderDate, LocalDate.now()));
+            LocalDate minDueDate = command.dueDate().plusDays(daysBetween);
+
+            List<MrpExceptionReport> finalExceptionReports = problemNodes.stream()
+                    .map(node -> {
+                        String solution = node.exceptionType().equals("LEAD_TIME_VIOLATION") ?
+                                String.format("이 제품의 최소 납기일은 %s입니다.",
+                                        minDueDate) :
+                                String.format("현재 가용 Bin으로 처리 가능한 최대 수량은 %d입니다.",
+                                        node.availableBins() * 10 * 25);
+
+                        return MrpExceptionReport.builder()
+                                .exceptionType(node.exceptionType())
+                                .exceptionMessage(node.exceptionMessage())
+                                .solution(solution)
+                                .build();
+                    })
+                    .toList();
+
+            return new MrpCalculateResultDto(
+                    -1,
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    finalExceptionReports,
+                    maxLeadTime
+            );
         }
 
         // vendor 결과들 처리

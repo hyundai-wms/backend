@@ -109,7 +109,7 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
             XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet("MRP Exception Report");
 
-            String[] headers = {"예외 유형", "예외 메시지"};
+            String[] headers = {"예외 유형", "예외 메시지", "솔루션"};
             createHeaders(sheet, headers);
 
             int rowNum = 1;
@@ -117,6 +117,7 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(report.getExceptionType());
                 row.createCell(1).setCellValue(report.getExceptionMessage());
+                row.createCell(2).setCellValue(report.getSolution());
             }
 
             autoSizeColumns(sheet, headers.length);
