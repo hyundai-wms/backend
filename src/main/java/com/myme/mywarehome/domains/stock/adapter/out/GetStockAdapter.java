@@ -69,8 +69,6 @@ public class GetStockAdapter implements GetStockPort {
                                 selectedDate
                         );
 
-                        // TODO : 커맨드 체크
-
                         long startIndex = (long) pageable.getPageNumber() * pageable.getPageSize();
                         long endIndex = startIndex + pageable.getPageSize();
 
@@ -90,10 +88,6 @@ public class GetStockAdapter implements GetStockPort {
 
     @Override
     public void emitStockUpdate(StockSummaryResult stockSummaryResult) {
-        log.debug("\n\n\n\n\n\n\n");
-        log.debug("emitStockUpdate: {}", stockSummaryResult);
-        log.debug("\n\n\n\n\n\n\n");
-
         sinks.tryEmitNext(new StockFluctuationEvent(
                 "UPDATE",
                 stockSummaryResult
