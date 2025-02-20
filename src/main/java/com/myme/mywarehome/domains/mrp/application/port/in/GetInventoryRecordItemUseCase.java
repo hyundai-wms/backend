@@ -8,5 +8,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface GetInventoryRecordItemUseCase {
   //  Page<InventoryRecordItem> getInventoryRecordItem (GetAllInventoryRecordCommand command, Pageable pageable);
-  GetInventoryRecordItemResult getInventoryRecordItem(GetInventoryRecordItemCommand command, Pageable pageable);
+  Page<InventoryRecordItem> getInventoryRecordItem(GetInventoryRecordItemCommand command, Pageable pageable);
 }
