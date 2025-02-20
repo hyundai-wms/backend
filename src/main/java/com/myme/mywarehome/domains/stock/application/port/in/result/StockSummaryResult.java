@@ -1,7 +1,9 @@
 package com.myme.mywarehome.domains.stock.application.port.in.result;
 
 import java.time.LocalDateTime;
+import lombok.Builder;
 
+@Builder
 public record StockSummaryResult(
         String productNumber,
         String productName,
