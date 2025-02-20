@@ -10,10 +10,13 @@ import com.myme.mywarehome.domains.mrp.application.exception.MrpOutputNotFoundEx
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpOrderUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.in.event.CreatePlanFromMrpEvent;
 import com.myme.mywarehome.domains.mrp.application.port.in.event.UpdateSafetyStockFromMrpEvent;
+import com.myme.mywarehome.domains.mrp.application.port.out.GetAllProductPort;
 import com.myme.mywarehome.domains.mrp.application.port.out.GetBomTreePort;
 import com.myme.mywarehome.domains.mrp.application.port.out.GetMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.port.out.UpdateMrpOutputPort;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockBulkUpdateEvent;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockUpdateEvent;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ public class MrpOrderService implements MrpOrderUseCase {
     private final GetBomTreePort getBomTreePort;
     private final UpdateMrpOutputPort updateMrpOutputPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final GetAllProductPort getAllProductPort;
 
     @Override
     @Transactional
@@ -71,7 +75,11 @@ public class MrpOrderService implements MrpOrderUseCase {
                 mrpOutput.getProductionPlanningReportList()
         ));
 
-        // 6. 생성 완료 시 isOrdered를 true로 변경 및 생산/발주 지시 성공
+        // 6. Stock 상태 변경 이벤트 발행
+        List<String> productNumberList = getAllProductPort.getAllProductNumbers();
+        eventPublisher.publishEvent(new StockBulkUpdateEvent(productNumberList));
+
+        // 7. 생성 완료 시 isOrdered를 true로 변경 및 생산/발주 지시 성공
         mrpOutput.orderSuccess();
         updateMrpOutputPort.orderSuccess(mrpOutput);
     }
@@ -116,22 +124,26 @@ public class MrpOrderService implements MrpOrderUseCase {
         // 각 엔진별로 IssuePlanCommand 생성
         // Kappa 엔진
         if (mrpOutput.getKappaCount() != null && mrpOutput.getKappaCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-03P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-03P00",
+                    (int) Math.ceil((double) mrpOutput.getKappaCount() / 25), mrpOutput.getDueDate()));
         }
 
         // Gamma 엔진
         if (mrpOutput.getGammaCount() != null && mrpOutput.getGammaCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-04P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-04P00",
+                    (int) Math.ceil((double) mrpOutput.getGammaCount() / 25), mrpOutput.getDueDate()));
         }
 
         // Nu 엔진
         if (mrpOutput.getNuCount() != null && mrpOutput.getNuCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-05P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-05P00",
+                    (int) Math.ceil((double) mrpOutput.getNuCount() / 25), mrpOutput.getDueDate()));
         }
 
         // Theta 엔진
         if (mrpOutput.getThetaCount() != null && mrpOutput.getThetaCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-06P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-06P00",
+                    (int) Math.ceil((double) mrpOutput.getThetaCount() / 25), mrpOutput.getDueDate()));
         }
 
         return engineIssuePlans;

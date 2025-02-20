@@ -121,4 +121,9 @@ public interface ReceiptPlanJpaRepository extends JpaRepository<ReceiptPlan, Lon
             @Param("receiptPlanId") Long receiptPlanId,
             @Param("today") LocalDate today
     );
+
+    @Query("SELECT COUNT(rp) FROM ReceiptPlan rp WHERE rp.receiptPlanDate = :selectedDate")
+    Integer countByReceiptPlanDate(@Param("selectedDate") LocalDate selectedDate);
+
+
 }

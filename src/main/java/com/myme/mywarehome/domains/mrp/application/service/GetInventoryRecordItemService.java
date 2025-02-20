@@ -17,16 +17,9 @@ public class GetInventoryRecordItemService implements GetInventoryRecordItemUseC
 
     // 상세 정보 조회
     @Override
-    public GetInventoryRecordItemResult getInventoryRecordItem(GetInventoryRecordItemCommand command, Pageable pageable) {
-        Page<InventoryRecordItem> itemList = getInventoryRecordItemPort.findInventoryRecordItems(
+    public Page<InventoryRecordItem> getInventoryRecordItem(GetInventoryRecordItemCommand command, Pageable pageable) {
+        return getInventoryRecordItemPort.findInventoryRecordItems(
                 command, pageable);
-
-        String applicableEngine = itemList.getContent().stream()
-                .map(item -> item.getProduct().getApplicableEngine())
-                .findFirst()
-                .orElse("");
-
-        return new GetInventoryRecordItemResult(applicableEngine, itemList);
     }
 
 }

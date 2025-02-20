@@ -11,14 +11,16 @@ public record MrpCalculateResultDto(
         long nextRequiredPartsCount,
         List<PurchaseOrderReport> purchaseOrderReports,
         List<ProductionPlanningReport> productionPlanningReports,
-        List<MrpExceptionReport> mrpExceptionReports
+        List<MrpExceptionReport> mrpExceptionReports,
+        int leadTimeDays
 ) {
     public static MrpCalculateResultDto withException(MrpExceptionReport exceptionReport) {
         return new MrpCalculateResultDto(
                 -1,
                 new ArrayList<>(),
                 new ArrayList<>(),
-                Collections.singletonList(exceptionReport)
+                Collections.singletonList(exceptionReport),
+                0
         );
     }
 

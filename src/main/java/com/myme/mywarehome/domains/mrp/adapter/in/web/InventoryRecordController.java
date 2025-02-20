@@ -5,6 +5,7 @@ import com.myme.mywarehome.domains.mrp.adapter.in.web.request.GetInventoryRecord
 import com.myme.mywarehome.domains.mrp.adapter.in.web.response.GetAllInventoryRecordResponse;
 import com.myme.mywarehome.domains.mrp.adapter.in.web.response.GetInventoryRecordItemResponse;
 import com.myme.mywarehome.domains.mrp.application.domain.InventoryRecord;
+import com.myme.mywarehome.domains.mrp.application.domain.InventoryRecordItem;
 import com.myme.mywarehome.domains.mrp.application.port.in.CreateInventoryRecordUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.in.GetAllInventoryRecordUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.in.GetInventoryRecordItemUseCase;
@@ -12,6 +13,7 @@ import com.myme.mywarehome.domains.mrp.application.port.in.result.GetInventoryRe
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -57,12 +59,12 @@ public class InventoryRecordController {
             @Valid GetInventoryRecordItemRequest request,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        GetInventoryRecordItemResult result = getInventoryRecordItemUseCase.getInventoryRecordItem(
+        Page<InventoryRecordItem> result = getInventoryRecordItemUseCase.getInventoryRecordItem(
                 request.toCommand(inventoryRecordId),
                 pageable
         );
         return CommonResponse.from(
-                GetInventoryRecordItemResponse.of(result.applicableEngine(), result.itemList())
+                GetInventoryRecordItemResponse.of(result)
         );
     }
 }

@@ -59,7 +59,6 @@ public class ReceiptPlanController {
         );
     }
 
-    // todo : 추후 MRP 시스템에서 발생한 Event를 Listening하도록 수정해야 함
     @PostMapping("/bulk")
     public CommonResponse<List<ReceiptPlanResponse>> createReceiptPlanBulk(
             @Valid @RequestBody List<CreateReceiptPlanRequest> requestList

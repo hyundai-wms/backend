@@ -11,6 +11,7 @@ import com.myme.mywarehome.domains.mrp.application.service.dto.MrpNodeDto;
 import com.myme.mywarehome.domains.product.application.domain.Product;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,7 +69,7 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
 
         long neededCount = adjustedCount - currentStockEA;  // N (추가 필요 수량)
         if (neededCount <= 0) {
-            return new MrpCalculateResultDto(0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            return new MrpCalculateResultDto(0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0);
         }
 
         long orderQuantity = neededCount / eachCount;       // X (발주/생산 수량)
@@ -80,33 +81,37 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
         LocalDate startDate = context.getComputedDate().minusDays(leadTimeDays);
         LocalDate now = LocalDate.now();
 
+        // 4. 보고서 생성
+        List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
+        List<ProductionPlanningReport> productionReports = new ArrayList<>();
+        List<MrpExceptionReport> exceptionReports = new ArrayList<>();
+
+        // 5-1. 문제 검사 : 리드타임 계산 시 납기일 불가능
         if (startDate.isBefore(now)) {
-            MrpExceptionReport exceptionReport = MrpExceptionReport.builder()
+            MrpExceptionReport mrpExceptionReport = MrpExceptionReport.builder()
                     .exceptionType("LEAD_TIME_VIOLATION")
                     .exceptionMessage(String.format(
                             "제품 %s는 %d일의 리드타임(LT)이 필요하며, %s부터 시작됩니다.",
                             product.getProductNumber(), leadTimeDays, startDate))
                     .build();
-            return MrpCalculateResultDto.withException(exceptionReport);
+
+            exceptionReports.add(mrpExceptionReport);
         }
 
-        // 4. Bin 용량 검증
+        // 5-2. 문제 검사 : Bin 용량 초과
         long totalBinsNeeded = (currentStock + orderQuantity) / 10;
         int availableBins = product.getBayList().size() * 10;
 
         if (totalBinsNeeded > availableBins) {
-            MrpExceptionReport exceptionReport = MrpExceptionReport.builder()
+            MrpExceptionReport mrpExceptionReport = MrpExceptionReport.builder()
                     .exceptionType("BIN_CAPACITY_EXCEEDED")
                     .exceptionMessage(String.format(
                             "제품 %s는 총 %d개의 Bin이 필요하지만 현재 %d개의 Bin만 사용 가능합니다.",
                             product.getProductNumber(), totalBinsNeeded, availableBins))
                     .build();
-            return MrpCalculateResultDto.withException(exceptionReport);
-        }
 
-        // 5. 보고서 생성
-        List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
-        List<ProductionPlanningReport> productionReports = new ArrayList<>();
+            exceptionReports.add(mrpExceptionReport);
+        }
 
         if (!product.getCompany().getIsVendor()) {
             // 엔진이거나 자체 생산 부품인 경우
@@ -118,6 +123,9 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
                     .safeItemCount(safetyStock)
                     .build();
             productionReports.add(productionReport);
+
+            // vendor가 아닌 경우만 context 업데이트
+            context.updateComputedDate(startDate);
         } else {
             // 외주 부품인 경우
             PurchaseOrderReport purchaseReport = PurchaseOrderReport.builder()
@@ -130,14 +138,12 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
             purchaseReports.add(purchaseReport);
         }
 
-        // 계산된 날짜 업데이트
-        context.updateComputedDate(startDate);
-
         return new MrpCalculateResultDto(
                 orderQuantity,
                 purchaseReports,
                 productionReports,
-                new ArrayList<>()
+                exceptionReports,
+                product.getCompany().getIsVendor() ? leadTimeDays : 0
         );
     }
 }

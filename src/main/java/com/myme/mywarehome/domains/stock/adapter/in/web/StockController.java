@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/v1/storages/inventories")
@@ -54,6 +57,19 @@ public class StockController {
         );
     }
 
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<Object>> streamStocks(
+            @Valid GetAllStockRequest request,
+            @PageableDefault(sort = "productNumber", direction = Direction.ASC) Pageable pageable,
+            @SelectedDate LocalDate selectedDate
+    ) {
+        return getAllStockUseCase.subscribeStockFluctuation(
+                request.toCommand(),
+                pageable,
+                selectedDate
+        );
+    }
+
     @GetMapping("/{productNumber}/details")
     public CommonResponse<GetStockResponse> getStock(
             @PathVariable("productNumber") String productNumber,
@@ -76,6 +92,11 @@ public class StockController {
                         getAllStockLocationUseCase.getAllBayList(pageable)
                 )
         );
+    }
+
+    @GetMapping(value = "/locations/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<Object>> streamStockLocations() {
+        return getBayUseCase.subscribeBayFluctuation();
     }
 
     @GetMapping("/{productNumber}/locations")
