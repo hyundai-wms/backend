@@ -56,4 +56,7 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
             "ORDER BY CAST(SUBSTRING(p.productNumber, 7, 2) AS integer)")
     List<Integer> countByEngineType();
 
+    @Query("SELECT p.productNumber FROM Product p")
+    List<String> findAllProductNumbers();
+
 }

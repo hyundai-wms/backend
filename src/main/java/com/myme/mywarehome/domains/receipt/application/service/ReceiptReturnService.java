@@ -6,6 +6,7 @@ import com.myme.mywarehome.domains.receipt.application.domain.service.OutboundPr
 import com.myme.mywarehome.domains.receipt.application.port.in.ReceiptReturnUseCase;
 import com.myme.mywarehome.domains.receipt.application.port.in.event.ReceiptPlanStatusChangedEvent;
 import com.myme.mywarehome.domains.receipt.application.port.out.CreateReturnPort;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockUpdateEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

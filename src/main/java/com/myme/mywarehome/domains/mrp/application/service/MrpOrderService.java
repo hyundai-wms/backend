@@ -10,10 +10,13 @@ import com.myme.mywarehome.domains.mrp.application.exception.MrpOutputNotFoundEx
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpOrderUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.in.event.CreatePlanFromMrpEvent;
 import com.myme.mywarehome.domains.mrp.application.port.in.event.UpdateSafetyStockFromMrpEvent;
+import com.myme.mywarehome.domains.mrp.application.port.out.GetAllProductPort;
 import com.myme.mywarehome.domains.mrp.application.port.out.GetBomTreePort;
 import com.myme.mywarehome.domains.mrp.application.port.out.GetMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.port.out.UpdateMrpOutputPort;
 import com.myme.mywarehome.domains.receipt.application.port.in.command.ReceiptPlanCommand;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockBulkUpdateEvent;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockUpdateEvent;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ public class MrpOrderService implements MrpOrderUseCase {
     private final GetBomTreePort getBomTreePort;
     private final UpdateMrpOutputPort updateMrpOutputPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final GetAllProductPort getAllProductPort;
 
     @Override
     @Transactional
@@ -71,7 +75,11 @@ public class MrpOrderService implements MrpOrderUseCase {
                 mrpOutput.getProductionPlanningReportList()
         ));
 
-        // 6. 생성 완료 시 isOrdered를 true로 변경 및 생산/발주 지시 성공
+        // 6. Stock 상태 변경 이벤트 발행
+        List<String> productNumberList = getAllProductPort.getAllProductNumbers();
+        eventPublisher.publishEvent(new StockBulkUpdateEvent(productNumberList));
+
+        // 7. 생성 완료 시 isOrdered를 true로 변경 및 생산/발주 지시 성공
         mrpOutput.orderSuccess();
         updateMrpOutputPort.orderSuccess(mrpOutput);
     }
