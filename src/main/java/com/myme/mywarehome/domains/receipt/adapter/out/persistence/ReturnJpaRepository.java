@@ -1,6 +1,8 @@
 package com.myme.mywarehome.domains.receipt.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.receipt.application.domain.Return;
+import com.myme.mywarehome.domains.statistic.adapter.in.web.response.GetMrpStatisticResponse;
+import com.myme.mywarehome.domains.statistic.adapter.in.web.response.GetMrpStatisticResponse.CompanyReturnCount;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,5 +21,20 @@ public interface ReturnJpaRepository extends JpaRepository<Return, Long> {
     Integer countByMonth(@Param("targetDate") LocalDate targetDate);
 
     List<Return> findTop10ByOrderByCreatedAtDesc();
+
+    @Query("""
+    SELECT c.companyName as companyName, COUNT(r) as returnCount
+    FROM Return r
+    JOIN r.receiptPlan rp
+    JOIN rp.product p
+    JOIN p.company c
+    GROUP BY c.companyName
+    ORDER BY COUNT(r) DESC
+    LIMIT 5
+    """)
+    List<Object[]> findTop5CompanyReturnCounts();
+
+    @Query("SELECT COUNT(r) FROM Return r")
+    Integer findTotalReturnCount();
 
 }
