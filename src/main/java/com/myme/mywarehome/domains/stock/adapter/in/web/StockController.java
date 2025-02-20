@@ -94,6 +94,11 @@ public class StockController {
         );
     }
 
+    @GetMapping(value = "/locations/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<Object>> streamStockLocations() {
+        return getBayUseCase.subscribeBayFluctuation();
+    }
+
     @GetMapping("/{productNumber}/locations")
     public CommonResponse<GetStockLocationByProductNumberResponse> getStockLocationByProductNumber(
         @PathVariable("productNumber") String productNumber

@@ -17,6 +17,8 @@ import com.myme.mywarehome.domains.receipt.application.port.out.GetOutboundProdu
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPlanPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReturnPort;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.BayBulkUpdateEvent;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.BayUpdateEvent;
 import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockBulkUpdateEvent;
 import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockUpdateEvent;
 import com.myme.mywarehome.domains.stock.application.domain.Stock;
@@ -73,7 +75,10 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
         // 5. Stock 상태 변경 이벤트 발행
         eventPublisher.publishEvent(new StockUpdateEvent(receiptPlan.getProduct().getProductNumber()));
 
-        // 6. 생성된 재고를 반환
+        // 6. Bay 상태 변경 이벤트 발행
+        eventPublisher.publishEvent(new BayUpdateEvent(receiptPlan.getProduct().getProductNumber()));
+
+        // 7. 생성된 재고를 반환
         try {
             return future.get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -203,6 +208,10 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
         // 한 번에 모든 변경된 plan들의 상태 변경 이벤트 발행
         if (!processedProductNumbers.isEmpty()) {
             eventPublisher.publishEvent(new StockBulkUpdateEvent(
+                    new ArrayList<>(processedProductNumbers)
+            ));
+
+            eventPublisher.publishEvent(new BayBulkUpdateEvent(
                     new ArrayList<>(processedProductNumbers)
             ));
         }

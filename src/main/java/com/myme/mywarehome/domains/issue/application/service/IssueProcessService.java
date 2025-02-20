@@ -13,6 +13,7 @@ import com.myme.mywarehome.domains.issue.application.port.in.event.IssueStockAss
 import com.myme.mywarehome.domains.issue.application.port.out.CreateIssuePort;
 import com.myme.mywarehome.domains.issue.application.port.out.GetIssuePlanPort;
 import com.myme.mywarehome.domains.issue.application.port.out.GetIssuePort;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.BayUpdateEvent;
 import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockUpdateEvent;
 import com.myme.mywarehome.domains.stock.application.domain.Stock;
 import lombok.RequiredArgsConstructor;
@@ -80,6 +81,9 @@ public class IssueProcessService implements IssueProcessUseCase {
 
             // 7. Stock 상태 변경 이벤트 발행
             eventPublisher.publishEvent(new StockUpdateEvent(issuePlan.getProduct().getProductNumber()));
+
+            // 8. Bay 상태 변경 이벤트 발행
+            eventPublisher.publishEvent(new BayUpdateEvent(issuePlan.getProduct().getProductNumber()));
 
         } catch (Exception e) {
             throw new StockAssignTimeoutException();
