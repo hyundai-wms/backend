@@ -68,7 +68,7 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
 
         long neededCount = adjustedCount - currentStockEA;  // N (추가 필요 수량)
         if (neededCount <= 0) {
-            return new MrpCalculateResultDto(0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            return new MrpCalculateResultDto(0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0);
         }
 
         long orderQuantity = neededCount / eachCount;       // X (발주/생산 수량)
@@ -118,6 +118,9 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
                     .safeItemCount(safetyStock)
                     .build();
             productionReports.add(productionReport);
+
+            // vendor가 아닌 경우만 context 업데이트
+            context.updateComputedDate(startDate);
         } else {
             // 외주 부품인 경우
             PurchaseOrderReport purchaseReport = PurchaseOrderReport.builder()
@@ -130,14 +133,12 @@ public class MrpCalculatorService implements MrpCalculatorUseCase {
             purchaseReports.add(purchaseReport);
         }
 
-        // 계산된 날짜 업데이트
-        context.updateComputedDate(startDate);
-
         return new MrpCalculateResultDto(
                 orderQuantity,
                 purchaseReports,
                 productionReports,
-                new ArrayList<>()
+                new ArrayList<>(),
+                product.getCompany().getIsVendor() ? leadTimeDays : 0
         );
     }
 }
