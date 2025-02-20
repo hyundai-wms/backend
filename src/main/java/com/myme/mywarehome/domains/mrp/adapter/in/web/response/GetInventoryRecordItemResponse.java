@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 public record GetInventoryRecordItemResponse(
-        String applicableEngine,
         List<InventoryRecordItemInfo> content,
         Integer pageNumber,
         Integer pageSize,
@@ -15,6 +14,7 @@ public record GetInventoryRecordItemResponse(
         boolean isLast
 ) {
     public record InventoryRecordItemInfo(
+            String applicableEngine,
             String productNumber,
             String productName,
             Integer compositionRatio,
@@ -23,6 +23,7 @@ public record GetInventoryRecordItemResponse(
     ) {
         public static InventoryRecordItemInfo from(InventoryRecordItem item) {
             return new InventoryRecordItemInfo(
+                    item.getProduct().getApplicableEngine(),
                     item.getProduct().getProductNumber(),
                     item.getProduct().getProductName(),
                     item.getCompositionRatio(),
@@ -31,9 +32,8 @@ public record GetInventoryRecordItemResponse(
             );
         }
     }
-    public static GetInventoryRecordItemResponse of(String applicableEngine, Page<InventoryRecordItem> page) {
+    public static GetInventoryRecordItemResponse of(Page<InventoryRecordItem> page) {
         return new GetInventoryRecordItemResponse(
-                applicableEngine,
                 page.getContent().stream()
                         .map(InventoryRecordItemInfo::from)
                         .toList(),
