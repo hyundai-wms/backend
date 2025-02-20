@@ -7,15 +7,26 @@ import com.myme.mywarehome.domains.mrp.adapter.out.persistence.BomTreeJpaReposit
 import com.myme.mywarehome.domains.mrp.application.domain.BomTree;
 import com.myme.mywarehome.domains.product.adapter.out.persistence.ProductJpaRepository;
 import com.myme.mywarehome.domains.product.application.domain.Product;
+import com.myme.mywarehome.domains.receipt.adapter.out.persistence.ReceiptJpaRepository;
+import com.myme.mywarehome.domains.receipt.adapter.out.persistence.ReceiptPlanJpaRepository;
+import com.myme.mywarehome.domains.receipt.application.domain.Receipt;
+import com.myme.mywarehome.domains.receipt.application.domain.ReceiptPlan;
 import com.myme.mywarehome.domains.stock.adapter.out.persistence.BayJpaRepository;
 import com.myme.mywarehome.domains.stock.adapter.out.persistence.BinJpaRepository;
+import com.myme.mywarehome.domains.stock.adapter.out.persistence.StockJpaRepository;
 import com.myme.mywarehome.domains.stock.application.domain.Bay;
 import com.myme.mywarehome.domains.stock.application.domain.Bin;
+import com.myme.mywarehome.domains.stock.application.domain.Stock;
+import com.myme.mywarehome.domains.stock.application.domain.StockEventType;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class InitDataForProdConfig implements CommandLineRunner {
@@ -31,6 +43,9 @@ public class InitDataForProdConfig implements CommandLineRunner {
     private final BinJpaRepository binJpaRepository;
     private final BayJpaRepository bayJpaRepository;
     private final BomTreeJpaRepository bomTreeJpaRepository;
+    private final ReceiptPlanJpaRepository receiptPlanJpaRepository;  // 추가
+    private final ReceiptJpaRepository receiptJpaRepository;          // 추가
+    private final StockJpaRepository stockJpaRepository;
 
     @Override
     @Transactional
@@ -97,6 +112,9 @@ public class InitDataForProdConfig implements CommandLineRunner {
 
         // 5. BOM 초기화
         initializeBomTrees(savedProducts);
+
+        // 6. 초기 재고 생성
+        initializeRandomStocks(savedProducts);
 
     }
 
@@ -571,6 +589,58 @@ public class InitDataForProdConfig implements CommandLineRunner {
                         .childProduct(componentProduct)
                         .childCompositionRatio(Integer.parseInt(component[1]))
                         .build());
+            }
+        }
+    }
+
+    private void initializeRandomStocks(List<Product> products) {
+        LocalDate today = LocalDate.now();
+        Random random = new Random();
+
+        for (Product product : products) {
+            // 0-20 사이의 랜덤한 재고 수량 결정
+            int stockCount = random.nextInt(21);
+
+            if (stockCount > 0) {
+                // List로 빈 Bin들을 받아옴
+                List<Bin> availableBins = binJpaRepository.findEmptyBinsByProductNumbers(
+                        List.of(product.getProductNumber())
+                );
+
+                if (availableBins.size() < stockCount) {
+                    log.warn("Not enough bins for product: " + product.getProductNumber());
+                    stockCount = availableBins.size();
+                }
+
+                // stockCount만큼 재고 생성
+                for (int i = 0; i < stockCount; i++) {
+                    // 1. ReceiptPlan 생성
+                    ReceiptPlan receiptPlan = ReceiptPlan.builder()
+                            .product(product)
+                            .receiptPlanDate(today.minusDays(random.nextInt(30)))
+                            .receiptPlanItemCount(1)
+                            .build();
+                    receiptPlanJpaRepository.save(receiptPlan);
+
+                    // 2. Receipt 생성
+                    Receipt receipt = Receipt.builder()
+                            .receiptPlan(receiptPlan)
+                            .receiptDate(today)
+                            .build();
+                    receiptJpaRepository.save(receipt);
+
+                    // 3. Stock 생성
+                    Stock stock = Stock.builder()
+                            .receipt(receipt)
+                            .stockEventType(StockEventType.RECEIPT)
+                            .build();
+
+                    // 4. Bin 할당
+                    Bin availableBin = availableBins.get(i);
+                    stock.assignBin(availableBin);
+
+                    stockJpaRepository.save(stock);
+                }
             }
         }
     }
