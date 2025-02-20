@@ -2,6 +2,9 @@ package com.myme.mywarehome.domains.receipt.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.receipt.application.domain.Receipt;
 import com.myme.mywarehome.domains.receipt.application.port.in.result.TodayReceiptResult;
+import com.myme.mywarehome.domains.statistic.adapter.in.web.response.GetMrpStatisticResponse;
+import com.myme.mywarehome.domains.statistic.adapter.in.web.response.GetMrpStatisticResponse.CompanyProductCount;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,4 +66,16 @@ public interface ReceiptJpaRepository extends JpaRepository<Receipt, Long> {
             "WHERE EXTRACT(YEAR FROM r.receiptDate) = :#{#targetDate.year} " +
             "AND EXTRACT(MONTH FROM r.receiptDate) = :#{#targetDate.monthValue}")
     Integer countByMonth(@Param("targetDate") LocalDate targetDate);
+
+    @Query("""
+    SELECT c.companyName as companyName, COUNT(rp) as receiptCount
+    FROM Receipt rp
+    JOIN rp.receiptPlan plan
+    JOIN plan.product p
+    JOIN p.company c
+    GROUP BY c.companyName
+    ORDER BY COUNT(rp) DESC
+    LIMIT 5
+    """)
+    List<Object[]> findTop5CompanyReceiptCounts();
 }
