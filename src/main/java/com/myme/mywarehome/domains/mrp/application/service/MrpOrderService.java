@@ -124,22 +124,26 @@ public class MrpOrderService implements MrpOrderUseCase {
         // 각 엔진별로 IssuePlanCommand 생성
         // Kappa 엔진
         if (mrpOutput.getKappaCount() != null && mrpOutput.getKappaCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-03P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-03P00",
+                    (int) Math.ceil((double) mrpOutput.getKappaCount() / 25), mrpOutput.getDueDate()));
         }
 
         // Gamma 엔진
         if (mrpOutput.getGammaCount() != null && mrpOutput.getGammaCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-04P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-04P00",
+                    (int) Math.ceil((double) mrpOutput.getGammaCount() / 25), mrpOutput.getDueDate()));
         }
 
         // Nu 엔진
         if (mrpOutput.getNuCount() != null && mrpOutput.getNuCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-05P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-05P00",
+                    (int) Math.ceil((double) mrpOutput.getNuCount() / 25), mrpOutput.getDueDate()));
         }
 
         // Theta 엔진
         if (mrpOutput.getThetaCount() != null && mrpOutput.getThetaCount() > 0) {
-            engineIssuePlans.add(new IssuePlanCommand("10000-06P00", mrpOutput.getKappaCount(), mrpOutput.getDueDate()));
+            engineIssuePlans.add(new IssuePlanCommand("10000-06P00",
+                    (int) Math.ceil((double) mrpOutput.getThetaCount() / 25), mrpOutput.getDueDate()));
         }
 
         return engineIssuePlans;
