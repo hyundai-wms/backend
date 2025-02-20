@@ -17,6 +17,8 @@ import com.myme.mywarehome.domains.receipt.application.port.out.GetOutboundProdu
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPlanPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReceiptPort;
 import com.myme.mywarehome.domains.receipt.application.port.out.GetReturnPort;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockBulkUpdateEvent;
+import com.myme.mywarehome.domains.stock.adapter.in.event.event.StockUpdateEvent;
 import com.myme.mywarehome.domains.stock.application.domain.Stock;
 import com.myme.mywarehome.domains.stock.application.exception.StockCreationTimeoutException;
 import jakarta.transaction.Transactional;
@@ -68,7 +70,10 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                 "RECEIPT_PROCESSED"
         ));
 
-        // 5. 생성된 재고를 반환
+        // 5. Stock 상태 변경 이벤트 발행
+        eventPublisher.publishEvent(new StockUpdateEvent(receiptPlan.getProduct().getProductNumber()));
+
+        // 6. 생성된 재고를 반환
         try {
             return future.get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -85,6 +90,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
         List<Receipt> allReceipts = new ArrayList<>();
         List<Return> allReturns = new ArrayList<>();
         Set<Long> processedPlanIds = new HashSet<>();
+        Set<String> processedProductNumbers = new HashSet<>();
 
         for (ReceiptPlan receiptPlan : receiptPlanList) {
             // 1. 기존 OutboundProduct ID들을 조회
@@ -153,6 +159,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                         allReceipts.add(receipt);
                         processedThisRound++;
                         processedPlanIds.add(receiptPlan.getReceiptPlanId());
+                        processedProductNumbers.add(receiptPlan.getProduct().getProductNumber());
                     } else if (processedThisRound < (additionalReceipts + additionalReturns)) {
                         Return returnEntity = Return.builder()
                                 .receiptPlan(receiptPlan)
@@ -161,6 +168,7 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                         allReturns.add(returnEntity);
                         processedThisRound++;
                         processedPlanIds.add(receiptPlan.getReceiptPlanId());
+                        processedProductNumbers.add(receiptPlan.getProduct().getProductNumber());
                     } else {
                         break;
                     }
@@ -189,6 +197,13 @@ public class ReceiptProcessService implements ReceiptProcessUseCase {
                     new ArrayList<>(processedPlanIds),
                     selectedDate,
                     "BULK_PROCESSED"
+            ));
+        }
+
+        // 한 번에 모든 변경된 plan들의 상태 변경 이벤트 발행
+        if (!processedProductNumbers.isEmpty()) {
+            eventPublisher.publishEvent(new StockBulkUpdateEvent(
+                    new ArrayList<>(processedProductNumbers)
             ));
         }
     }

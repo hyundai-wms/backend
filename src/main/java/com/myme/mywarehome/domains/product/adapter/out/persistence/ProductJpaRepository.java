@@ -45,4 +45,7 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
     @Modifying
     @Query("UPDATE Product p SET p.safeItemCount = :safeItemCount WHERE p.productNumber = :productNumber")
     void updateSafeItemCount(String productNumber, Integer safeItemCount);
+
+    @Query("SELECT p.productNumber FROM Product p")
+    List<String> findAllProductNumbers();
 }

@@ -2,6 +2,7 @@ package com.myme.mywarehome.domains.stock.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.stock.application.port.in.command.StockSummaryCommand;
 import com.myme.mywarehome.domains.stock.application.port.in.result.StockSummaryResult;
+import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Page;
@@ -29,5 +30,19 @@ public interface StockMybatisRepository {
         List<StockSummaryResult> content = findStockSummaryList(command, pageable, selectedDate);
         Long total = countStockSummaries(command);
         return new PageImpl<>(content, pageable, total);
+    }
+
+    Long findStockPosition(
+            @Param("productNumber") String productNumber,
+            @Param("command") StockSummaryCommand command,
+            @Param("selectedDate") LocalDate selectedDate
+    );
+
+    StockSummaryResult findStockSummaryByProductNumber(
+            @Param("productNumber") String productNumber
+    );
+
+    default Optional<StockSummaryResult> findOptionalStockSummaryByProductNumber(String productNumber) {
+        return Optional.ofNullable(findStockSummaryByProductNumber(productNumber));
     }
 }
