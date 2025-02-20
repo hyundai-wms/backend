@@ -4,19 +4,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myme.mywarehome.infrastructure.common.response.ErrorResponse;
 import com.myme.mywarehome.infrastructure.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.expression.SecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyAuthoritiesMapper;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,15 +50,38 @@ public class SecurityConfig {
                 .cors(cor -> cor.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers("/v1/auth/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()  // 로그인 경로만 허용
-                                .requestMatchers("/v1/productions/mrp/*/purchase/download", "/v1/productions/mrp/*/production/download", "/v1/productions/mrp/*/exception/download").permitAll()
-                                .requestMatchers("/v1/users/me").hasAnyRole("ADMIN", "MIDDLE_MANAGER", "WMS_MANAGER", "WORKER")
-                                .requestMatchers("/v1/users/**").hasRole("ADMIN")
-                                .requestMatchers(request ->
-                                        request.getRequestURI().endsWith("/stream") &&
-                                                request.getHeader("Accept").contains(MediaType.TEXT_EVENT_STREAM_VALUE)).hasAnyRole("ADMIN", "MIDDLE_MANAGER", "WMS_MANAGER", "WORKER")
-                                .requestMatchers("/v1/**").hasAnyRole("ADMIN", "MIDDLE_MANAGER", "WMS_MANAGER", "WORKER")
-                                .anyRequest().authenticated()
+                                // 공개 엔드포인트
+                                .requestMatchers("/v1/auth/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                .requestMatchers("/v1/productions/mrp/*/purchase/download",
+                                        "/v1/productions/mrp/*/production/download",
+                                        "/v1/productions/mrp/*/exception/download").permitAll()
+
+                                // 자신의 정보 조회
+                                .requestMatchers("/v1/users/me").hasRole("WORKER")
+
+                                // 총 관리자 전용 엔드포인트
+                                .requestMatchers(
+                                        "/v1/storages/receipts/complete",
+                                        "/v1/storages/issues/complete",
+                                        "/v1/users/**"
+                                ).hasRole("ADMIN")
+
+                                // 중간 관리자 엔드포인트
+                                .requestMatchers(
+                                        "/v1/productions/**",
+                                        "/v1/statistics/productions"
+                                ).hasRole("MIDDLE_MANAGER")
+
+                                // WMS 관리자 엔드포인트
+                                .requestMatchers(
+                                        "/v1/storages/inventories",
+                                        "/v1/storages/inventories/stream",
+                                        "/v1/storages/inventories/*/details",
+                                        "/v1/statistics/storages"
+                                ).hasRole("WMS_MANAGER")
+
+                                // SSE 엔드포인트 및 나머지 모든 /v1/** 경로는 기본적으로 WORKER 이상의 권한 필요
+                                .anyRequest().hasRole("WORKER")
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -96,6 +130,23 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("""
+            ROLE_ADMIN > ROLE_MIDDLE_MANAGER
+            ROLE_MIDDLE_MANAGER > ROLE_WMS_MANAGER
+            ROLE_WMS_MANAGER > ROLE_WORKER
+            """);
+    }
+
+    @Bean
+    public DefaultWebSecurityExpressionHandler expressionHandler() {
+        DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+        expressionHandler.setRoleHierarchy(roleHierarchy());
+        return expressionHandler;
+    }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
