@@ -50,7 +50,7 @@ public class MrpOperationService implements MrpOperationUseCase {
         UnifiedBomDataDto unifiedBomData = mrpBomTreeUseCase.createUnifiedBomTree(command);
 
         // 3. BFS 순회 및 계산
-        MrpCalculateResultDto result = mrpBomTreeTraversalUseCase.traverse(unifiedBomData, context);
+        MrpCalculateResultDto result = mrpBomTreeTraversalUseCase.traverse(command, unifiedBomData, context);
 
         // 4. 결과 저장
         mrpOutputUseCase.saveResults(command, result);

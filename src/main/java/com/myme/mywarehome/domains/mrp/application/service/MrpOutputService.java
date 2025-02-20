@@ -1,5 +1,6 @@
 package com.myme.mywarehome.domains.mrp.application.service;
 
+import com.myme.mywarehome.domains.mrp.application.domain.MrpExceptionReport;
 import com.myme.mywarehome.domains.mrp.application.domain.MrpOutput;
 import com.myme.mywarehome.domains.mrp.application.domain.ProductionPlanningReport;
 import com.myme.mywarehome.domains.mrp.application.domain.PurchaseOrderReport;
@@ -47,7 +48,6 @@ public class MrpOutputService implements MrpOutputUseCase {
         // 일정 최적화
         List<PurchaseOrderReport> optimizedPurchaseReports = optimizePurchaseSchedules(result.purchaseOrderReports());
         List<ProductionPlanningReport> optimizedProductionReports = optimizeProductionSchedules(result.productionPlanningReports());
-
 
         // MrpOutput 생성 및 저장
         MrpOutput mrpOutput = MrpOutput.builder()
@@ -113,6 +113,28 @@ public class MrpOutputService implements MrpOutputUseCase {
         );
     }
 
+    private List<MrpExceptionReport> optimizeExceptionReports(List<MrpExceptionReport> reports) {
+        return mergeSameProductSchedules(reports,
+                // exceptionMessage에서 제품번호를 추출해서 비교
+                (r1, r2) -> extractProductNumber(r1.getExceptionMessage())
+                        .equals(extractProductNumber(r2.getExceptionMessage())),
+                (r1, r2) -> {
+                    // BIN_CAPACITY_EXCEEDED가 있으면 우선 선택
+                    if (r1.getExceptionType().equals("BIN_CAPACITY_EXCEEDED") ||
+                            r2.getExceptionType().equals("BIN_CAPACITY_EXCEEDED")) {
+                        return r1.getExceptionType().equals("BIN_CAPACITY_EXCEEDED") ? r1 : r2;
+                    }
+                    // 둘 다 LEAD_TIME_VIOLATION이면 아무거나 선택
+                    return r1;
+                }
+        );
+    }
+
+    // "제품 ABC-123는..." 형태의 메시지에서 제품번호만 추출
+    private String extractProductNumber(String message) {
+        return message.split("제품 ")[1].split("는")[0];
+    }
+
     private LocalDate getEarlierDate(LocalDate date1, LocalDate date2) {
         return date1.isBefore(date2) ? date1 : date2;
     }
@@ -147,6 +169,9 @@ public class MrpOutputService implements MrpOutputUseCase {
 
     private void handleExceptionResult(MrpInputCommand command, MrpCalculateResultDto result) {
 
+        // 물품 당 예외 최적화
+        List<MrpExceptionReport> optimizedExceptionReports = optimizeExceptionReports(result.mrpExceptionReports());
+
         MrpOutput mrpOutput = MrpOutput.builder()
                 .createdDate(LocalDate.now())
                 .dueDate(command.dueDate())
@@ -158,13 +183,13 @@ public class MrpOutputService implements MrpOutputUseCase {
                 .thetaCount(command.engineCountMap().get("theta"))
                 .build();
 
-        mrpOutput.assignWithMrpExceptionReports(result.mrpExceptionReports());
+        mrpOutput.assignWithMrpExceptionReports(optimizedExceptionReports);
 
         createMrpOutputPort.createMrpOutput(
                 mrpOutput,
                 Collections.emptyList(),
                 Collections.emptyList(),
-                result.mrpExceptionReports()
+                optimizedExceptionReports
         );
 
         // Excel 파일 생성 및 S3 업로드

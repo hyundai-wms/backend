@@ -26,15 +26,18 @@ public class MrpExceptionReport extends BaseTimeEntity {
 
     private String exceptionMessage;
 
+    private String solution;
+
     @ManyToOne
     @JoinColumn(name = "mrp_output_id")
     private MrpOutput mrpOutput;
 
     @Builder
-    public MrpExceptionReport(Long mrpExceptionReportId, String exceptionType, String exceptionMessage, MrpOutput mrpOutput) {
+    public MrpExceptionReport(Long mrpExceptionReportId, String exceptionType, String exceptionMessage, String solution, MrpOutput mrpOutput) {
         this.mrpExceptionReportId = mrpExceptionReportId;
         this.exceptionType = exceptionType;
         this.exceptionMessage = exceptionMessage;
+        this.solution = solution;
         this.mrpOutput = mrpOutput;
     }
 
