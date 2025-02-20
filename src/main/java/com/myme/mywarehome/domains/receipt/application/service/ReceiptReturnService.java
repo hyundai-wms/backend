@@ -40,9 +40,6 @@ public class ReceiptReturnService implements ReceiptReturnUseCase {
                 "RECEIPT_PROCESSED"
         ));
 
-        // 4. Stock 상태 변경 이벤트 발행
-        eventPublisher.publishEvent(new StockUpdateEvent(receiptPlan.getProduct().getProductNumber()));
-
         createReturnPort.create(returnEntity);
     }
 }
