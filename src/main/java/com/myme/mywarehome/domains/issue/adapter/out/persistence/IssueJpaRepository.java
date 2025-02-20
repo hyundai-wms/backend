@@ -50,4 +50,12 @@ public interface IssueJpaRepository extends JpaRepository<Issue, Long> {
             @Param("issueEndDate") LocalDate issueEndDate,
             Pageable pageable
     );
+
+    Integer countByIssueDate(LocalDate issueDate);
+
+    @Query("SELECT COUNT(i) FROM Issue i " +
+            "WHERE EXTRACT(YEAR FROM i.issueDate) = :#{#targetDate.year} " +
+            "AND EXTRACT(MONTH FROM i.issueDate) = :#{#targetDate.monthValue}")
+    Integer countByMonth(@Param("targetDate") LocalDate targetDate);
+
 }

@@ -49,4 +49,18 @@ public interface ReceiptJpaRepository extends JpaRepository<Receipt, Long> {
 
     @Query("SELECT COUNT(r) FROM Receipt r WHERE r.receiptPlan.receiptPlanId = :receiptPlanId")
     long countByReceiptPlanId(@Param("receiptPlanId") Long receiptPlanId);
+
+
+    @Query("""
+      SELECT COUNT(DISTINCT r.receiptId) + COUNT(DISTINCT rt.returnId)
+      FROM Receipt r
+      LEFT JOIN Return rt ON r.receiptPlan = rt.receiptPlan
+      WHERE r.receiptDate = :selectedDate OR rt.returnDate = :selectedDate
+        """)
+    Integer countByReceiptDate(@Param("selectedDate") LocalDate selectedDate);
+
+    @Query("SELECT COUNT(r) FROM Receipt r " +
+            "WHERE EXTRACT(YEAR FROM r.receiptDate) = :#{#targetDate.year} " +
+            "AND EXTRACT(MONTH FROM r.receiptDate) = :#{#targetDate.monthValue}")
+    Integer countByMonth(@Param("targetDate") LocalDate targetDate);
 }

@@ -106,4 +106,7 @@ SELECT new com.myme.mywarehome.domains.issue.application.port.in.result.TodayIss
             @Param("issuePlanId") Long issuePlanId,
             @Param("today") LocalDate today
     );
+
+
+    Integer countByIssuePlanDate(LocalDate selectedDate);
 }

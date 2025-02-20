@@ -45,4 +45,15 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
     @Modifying
     @Query("UPDATE Product p SET p.safeItemCount = :safeItemCount WHERE p.productNumber = :productNumber")
     void updateSafeItemCount(String productNumber, Integer safeItemCount);
+
+    @Query("SELECT COUNT(p) FROM Product p " +
+            "GROUP BY SUBSTRING(p.productNumber, 1, 1) " +
+            "ORDER BY SUBSTRING(p.productNumber, 1, 1)")
+    List<Integer> countByDefaultPN();
+
+    @Query("SELECT COUNT(p) FROM Product p " +
+            "GROUP BY SUBSTRING(p.productNumber, 7, 2) " +
+            "ORDER BY CAST(SUBSTRING(p.productNumber, 7, 2) AS integer)")
+    List<Integer> countByEngineType();
+
 }
