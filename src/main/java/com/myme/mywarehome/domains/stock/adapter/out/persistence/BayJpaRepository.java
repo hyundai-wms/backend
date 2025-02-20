@@ -59,4 +59,10 @@ public interface BayJpaRepository extends JpaRepository<Bay, Long> {
             "WHERE b.bayNumber = :bayNumber " +
             "ORDER BY bin.binId")
     List<BinInfoResult> findByBayNumber(@Param("bayNumber") String bayNumber);
+
+    @Query("SELECT COUNT(DISTINCT b.bayId) FROM Bay b " +
+            "LEFT JOIN b.binList bin " +
+            "LEFT JOIN bin.stock s " +
+            "WHERE s.stockId IS NOT NULL")
+    Integer countOccupiedBays();
 }
