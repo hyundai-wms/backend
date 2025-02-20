@@ -11,6 +11,7 @@ import com.myme.mywarehome.domains.mrp.application.service.dto.MrpContextDto;
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpNodeDto;
 import com.myme.mywarehome.domains.mrp.application.service.dto.UnifiedBomDataDto;
 
+import java.time.LocalDate;
 import java.util.*;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,9 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
         List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
         List<ProductionPlanningReport> productionReports = new ArrayList<>();
         List<MrpExceptionReport> exceptionReports = new ArrayList<>();
+
+        // vendor 노드들의 계산 결과를 모으기 위한 리스트
+        List<MrpCalculateResultDto> vendorResults = new ArrayList<>();
 
         // 루트 노드로 시작
         MrpNodeDto rootNode = new MrpNodeDto(
@@ -53,18 +57,51 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                 return result;
             }
 
-            purchaseReports.addAll(result.purchaseOrderReports());
-            productionReports.addAll(result.productionPlanningReports());
+            // vendor인 경우 따로 보관
+            if (currentNode.product().getCompany().getIsVendor()) {
+                vendorResults.add(result);
+            } else {
+                // vendor가 아닌 경우 바로 추가
+                purchaseReports.addAll(result.purchaseOrderReports());
+                productionReports.addAll(result.productionPlanningReports());
+            }
 
             // 자식 노드들 처리
             processChildNodes(currentNode, unifiedBomData, productDeque);
+        }
+
+        // vendor 결과들 처리
+        if (!vendorResults.isEmpty()) {
+            // 최대 리드타임 찾기
+            int maxLeadTime = vendorResults.stream()
+                    .mapToInt(MrpCalculateResultDto::leadTimeDays)
+                    .max()
+                    .orElse(0);
+
+            // 모든 vendor 발주를 최대 리드타임 기준으로 조정
+            for (MrpCalculateResultDto vendorResult : vendorResults) {
+                for (PurchaseOrderReport report : vendorResult.purchaseOrderReports()) {
+                    LocalDate purchaseOrderDate = context.getComputedDate().minusDays(maxLeadTime);
+                    LocalDate receiptPlanDate = purchaseOrderDate.plusDays(vendorResult.leadTimeDays());
+
+                    PurchaseOrderReport adjustedReport = PurchaseOrderReport.builder()
+                            .purchaseOrderDate(purchaseOrderDate)
+                            .receiptPlanDate(receiptPlanDate)
+                            .product(report.getProduct())
+                            .quantity(report.getQuantity())
+                            .safeItemCount(report.getSafeItemCount())
+                            .build();
+                    purchaseReports.add(adjustedReport);
+                }
+            }
         }
 
         return new MrpCalculateResultDto(
                 0,
                 purchaseReports,
                 productionReports,
-                exceptionReports
+                exceptionReports,
+                0
         );
     }
 
