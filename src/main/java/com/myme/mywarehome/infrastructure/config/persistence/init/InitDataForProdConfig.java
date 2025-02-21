@@ -1,5 +1,7 @@
 package com.myme.mywarehome.infrastructure.config.persistence.init;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.myme.mywarehome.domains.company.adapter.out.persistence.CompanyJpaRepository;
 import com.myme.mywarehome.domains.company.application.domain.Company;
 import com.myme.mywarehome.domains.issue.adapter.out.persistence.IssuePlanJpaRepository;
@@ -27,6 +29,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,71 +54,85 @@ public class InitDataForProdConfig implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         if (companyJpaRepository.count() > 0 || productJpaRepository.count() > 0) {
-            return; // Skip if data already exists
+            log.info("init data 생성 불필요");
+            return;
         }
 
-        // 1. Company 초기화
-        List<Company> companies = new ArrayList<>();
+        // SQL 로그 레벨 일시 변경
+        Logger sqlLogger = (Logger) LoggerFactory.getLogger("org.hibernate.SQL");
+        Level originalLevel = sqlLogger.getLevel();
+        sqlLogger.setLevel(Level.WARN);
 
-        // Add in-house manufacturing company (ID: 1)
-        companies.add(createCompany(1, "자체생산", false, "자체생산"));
+        try {
+            log.info("init data 생성중..");
 
-        // Add T1 companies
-        List<String> t1Companies = Arrays.asList(
-                "포스코", "Mahle", "현대제철", "Fel-Pro", "Bosch",
-                "Continental", "Denso", "BorgWarner", "Aisin", "Delphi",
-                "NGK", "Modine", "Schaeffler"
-        );
+            // 1. Company 초기화
+            List<Company> companies = new ArrayList<>();
 
-        int currentId = 2;
-        for (String companyName : t1Companies) {
-            companies.add(createCompany(currentId++, companyName, true, "T1"));
+            // Add in-house manufacturing company (ID: 1)
+            companies.add(createCompany(1, "자체생산", false, "자체생산"));
+
+            // Add T1 companies
+            List<String> t1Companies = Arrays.asList(
+                    "포스코", "Mahle", "현대제철", "Fel-Pro", "Bosch",
+                    "Continental", "Denso", "BorgWarner", "Aisin", "Delphi",
+                    "NGK", "Modine", "Schaeffler"
+            );
+
+            int currentId = 2;
+            for (String companyName : t1Companies) {
+                companies.add(createCompany(currentId++, companyName, true, "T1"));
+            }
+
+            // Add T2 companies
+            List<String> t2Companies = Arrays.asList(
+                    "대원산업", "동아튜브", "대원공업", "한국필터",
+                    "신성씰테크", "우진스프링", "한일고무"
+            );
+
+            for (String companyName : t2Companies) {
+                companies.add(createCompany(currentId++, companyName, true, "T2"));
+            }
+
+            List<Company> savedCompanies = companyJpaRepository.saveAll(companies);
+
+            // 2. Product 초기화
+            List<Product> products = new ArrayList<>();
+            String[] engineTypes = {"03", "04", "05", "06"};
+            String[] engineNames = {"Kappa 엔진", "Gamma 엔진", "Nu 엔진", "Theta 엔진"};
+
+            // Company Map 생성
+            var companyMap = savedCompanies.stream()
+                    .collect(Collectors.toMap(Company::getCompanyName, company -> company));
+
+            // First, create common parts (01 engine type)
+            createCommonParts(products, companyMap);
+
+            // Then create engine-specific parts
+            for (int i = 0; i < engineTypes.length; i++) {
+                initializeEngineProducts(products, engineTypes[i], engineNames[i], companyMap);
+            }
+
+            // productJpaRepository.saveAll(products);
+            List<Product> savedProducts = productJpaRepository.saveAll(products);
+
+            // 3. Bay 초기화
+            List<Bay> savedBays = bayJpaRepository.saveAll(initializeBays(savedProducts));
+
+            // 4. Bin 초기화 추가
+            initializeBins(savedBays);
+
+            // 5. BOM 초기화
+            initializeBomTrees(savedProducts);
+
+            // 6. 초기 재고 생성
+            initializeRandomStocks(savedProducts);
+
+            log.info("init data 생성완료");
+        } finally {
+            // 원래 SQL 로그 레벨로 복원
+            sqlLogger.setLevel(originalLevel);
         }
-
-        // Add T2 companies
-        List<String> t2Companies = Arrays.asList(
-                "대원산업", "동아튜브", "대원공업", "한국필터",
-                "신성씰테크", "우진스프링", "한일고무"
-        );
-
-        for (String companyName : t2Companies) {
-            companies.add(createCompany(currentId++, companyName, true, "T2"));
-        }
-
-        List<Company> savedCompanies = companyJpaRepository.saveAll(companies);
-
-        // 2. Product 초기화
-        List<Product> products = new ArrayList<>();
-        String[] engineTypes = {"03", "04", "05", "06"};
-        String[] engineNames = {"Kappa 엔진", "Gamma 엔진", "Nu 엔진", "Theta 엔진"};
-
-        // Company Map 생성
-        var companyMap = savedCompanies.stream()
-                .collect(Collectors.toMap(Company::getCompanyName, company -> company));
-
-        // First, create common parts (01 engine type)
-        createCommonParts(products, companyMap);
-
-        // Then create engine-specific parts
-        for (int i = 0; i < engineTypes.length; i++) {
-            initializeEngineProducts(products, engineTypes[i], engineNames[i], companyMap);
-        }
-
-       // productJpaRepository.saveAll(products);
-        List<Product> savedProducts = productJpaRepository.saveAll(products);
-
-        // 3. Bay 초기화
-        List<Bay> savedBays = bayJpaRepository.saveAll(initializeBays(savedProducts));
-
-        // 4. Bin 초기화 추가
-        initializeBins(savedBays);
-
-        // 5. BOM 초기화
-        initializeBomTrees(savedProducts);
-
-        // 6. 초기 재고 생성
-        initializeRandomStocks(savedProducts);
-
     }
 
     private Company createCompany(int id, String companyName, boolean isVendor, String tier) {
