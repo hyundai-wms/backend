@@ -40,7 +40,7 @@ public class GetIssuePlanAdapter implements GetIssuePlanPort {
                 command.companyCode(),
                 command.issuePlanStartDate(),
                 command.issuePlanEndDate(),
-                command.productName(),
+                command.productNumber(),
                 command.issuePlanCode(),
                 pageable
         );
