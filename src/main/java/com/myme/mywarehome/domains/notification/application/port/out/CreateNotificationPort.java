@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface CreateNotificationPort {
     void create(Notification notification);
-    void createAll(List<UserNotification> notifications);
+    List<UserNotification>  createAll(List<UserNotification> notifications);
 }

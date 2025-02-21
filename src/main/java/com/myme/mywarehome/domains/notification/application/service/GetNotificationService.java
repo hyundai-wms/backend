@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -66,10 +67,24 @@ public class GetNotificationService implements GetNotificationUseCase {
                         .build())
                 .collect(Collectors.toList());
 
-        createNotificationPort.createAll(userNotifications);
+        // 5. 알림 저장 및 저장된 UserNotification 목록 받기
+        List<UserNotification> savedNotifications = createNotificationPort.createAll(userNotifications);
 
-        // 5. 실시간 알림 발생
-        getNotificationPort.generateNotification(notificationResult, targetRoles);
+        // 6. 각 사용자별로 실시간 알림 발생
+        Optional<UserNotification> savedNotification = savedNotifications.stream().findFirst();
+        if (savedNotification.isPresent()) {
+            NotificationResult updatedResult = NotificationResult.builder()
+                    .userNotificationId(savedNotification.get().getUserNotificationId())
+                    .type(notification.getNotificationType())
+                    .code(notification.getCode())
+                    .title(notification.getTitle())
+                    .message(notification.getMessage())
+                    .isRead(false)
+                    .build();
+
+            // 해당 사용자의 Role에 맞는 알림만 전송
+            getNotificationPort.generateNotification(updatedResult, targetRoles);
+        }
     }
 
     private Set<Role> getExpandedRoles(Role role) {

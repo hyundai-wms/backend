@@ -25,15 +25,21 @@ public class CreateNotificationAdapter implements CreateNotificationPort {
 
     @Override
     @Transactional
-    public void createAll(List<UserNotification> notifications) {
-        // 1. 먼저 모든 Notification 엔티티들을 추출하여 저장
-        Set<Notification> uniqueNotifications = notifications.stream()
-                .map(UserNotification::getNotification)
-                .collect(Collectors.toSet());
+    public List<UserNotification> createAll(List<UserNotification> notifications) {
+        // 1. Notification 엔티티 추출 및 저장
+        Notification notification = notifications.get(0).getNotification();
+        Notification savedNotification = notificationJpaRepository.save(notification);
 
-        notificationJpaRepository.saveAll(uniqueNotifications);
+        // 2. UserNotification 업데이트 및 저장
+        List<UserNotification> updatedNotifications = notifications.stream()
+                .map(un -> UserNotification.builder()
+                        .user(un.getUser())
+                        .notification(savedNotification)
+                        .isRead(false)
+                        .build())
+                .collect(Collectors.toList());
 
-        // 2. 그 다음 UserNotification 저장
-        userNotificationJpaRepository.saveAll(notifications);
+        // 3. 저장하고 저장된 UserNotification 목록 반환
+        return userNotificationJpaRepository.saveAll(updatedNotifications);
     }
 }
