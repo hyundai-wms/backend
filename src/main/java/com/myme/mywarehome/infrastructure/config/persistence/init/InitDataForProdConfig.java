@@ -151,13 +151,10 @@ public class InitDataForProdConfig implements CommandLineRunner {
                 }));
 
         // depth별 Bay 할당 비율 계산
-        // 엔진(0 depth): 40% (가장 많은 공간 필요)
-        // 주요 모듈(1 depth): 35%
-        // 세부 부품(2 depth): 25% (EA가 크므로 상대적으로 적은 공간 필요)
         Map<Integer, Integer> depthBayCount = new HashMap<>();
-        depthBayCount.put(0, (int)(TOTAL_BAYS * 0.4)); // 1280 bays for engines
-        depthBayCount.put(1, (int)(TOTAL_BAYS * 0.35)); // 1120 bays for main modules
-        depthBayCount.put(2, TOTAL_BAYS - depthBayCount.get(0) - depthBayCount.get(1)); // 800 bays for detailed parts
+        depthBayCount.put(0, 800); // 800 bays for engines
+        depthBayCount.put(1, 800); // 800 bays for main modules
+        depthBayCount.put(2, TOTAL_BAYS - depthBayCount.get(0) - depthBayCount.get(1)); // 1280 bays for detailed parts
 
         int totalBaysCreated = 0;
 
