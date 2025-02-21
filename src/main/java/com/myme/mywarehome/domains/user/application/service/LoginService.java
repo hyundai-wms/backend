@@ -6,6 +6,7 @@ import com.myme.mywarehome.domains.user.application.exception.LoginFailedExcepti
 import com.myme.mywarehome.domains.user.application.exception.UserNotFoundException;
 import com.myme.mywarehome.domains.user.application.port.in.LoginUseCase;
 import com.myme.mywarehome.domains.user.application.port.out.GetUserPort;
+import com.myme.mywarehome.infrastructure.aspect.lock.UserLock;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class LoginService implements LoginUseCase {
     private final GetUserPort getUserPort;
     private final HttpSession httpSession;
 
+    @UserLock
     @Override
     public User login(String id, String password) {
         try {

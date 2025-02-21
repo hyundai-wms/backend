@@ -45,7 +45,6 @@ public class SwaggerConfig {
                 .addServersItem(new Server().url("http://localhost:8080").description("Local"))
                 .info(info)
                 .addSecurityItem(securityRequirement)
-                .components(new Components().addSecuritySchemes("bearerAuth", securityScheme))
                 .tags(tags);
     }
 
