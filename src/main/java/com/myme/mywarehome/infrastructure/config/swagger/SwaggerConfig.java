@@ -1,7 +1,6 @@
 package com.myme.mywarehome.infrastructure.config.swagger;
 
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -9,11 +8,16 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
+
+    @Value("${app.base-url}")
+    private String appBaseUrl;
 
     @Bean
     public OpenAPI openAPI() {
@@ -36,19 +40,11 @@ public class SwaggerConfig {
                 new Tag().name("Auth").description("인증 관련 API")
         );
 
-
-
         return new OpenAPI()
-                .addServersItem(new Server().url("https://api.mywareho.me").description("Production"))
-                .addServersItem(new Server().url("https://qa.api.mywareho.me").description("QA"))
-                .addServersItem(new Server().url("https://dev.api.mywareho.me").description("Dev"))
-                .addServersItem(new Server().url("http://localhost:8080").description("Local"))
+                .addServersItem(new Server().url(appBaseUrl).description("Production"))
                 .info(info)
                 .addSecurityItem(securityRequirement)
                 .tags(tags);
     }
-
-
-
 
 }
