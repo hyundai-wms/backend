@@ -56,6 +56,15 @@ public class SecurityConfig {
                                         "/v1/productions/mrp/*/production/download",
                                         "/v1/productions/mrp/*/exception/download").permitAll()
 
+                                .requestMatchers(
+                                        "/v1/notifications/worker-test",
+                                        "/v1/notifications/wms-manager-test",
+                                        "v1/notifications/middle-manager-test",
+                                        "v1/notifications/admin-test"
+                                ).hasRole("ADMIN")
+
+                                .requestMatchers("/v1/notifications/**").hasRole("WORKER")
+
                                 // 자신의 정보 조회
                                 .requestMatchers("/v1/users/me").hasRole("WORKER")
 
