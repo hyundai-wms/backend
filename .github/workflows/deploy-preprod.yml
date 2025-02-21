@@ -44,7 +44,7 @@ jobs:
         with:
           host: ${{ secrets.DEV_EC2_HOST }}
           username: ${{ secrets.DEV_EC2_USERNAME }}
-          key: ${{ secrets.DEV_EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             # Docker 네트워크 생성 (이미 존재하면 무시)
             docker network create myme-network || true
@@ -65,8 +65,8 @@ jobs:
               --network myme-network \
               -p 8080:8080 \
               -e DB_URL=${{ secrets.DEV_DB_URL }} \
-              -e DB_USERNAME=${{ secrets.DEV_DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e MYWHME_AWS_S3_BUCKET=${{ secrets.MYWHME_AWS_S3_BUCKET }} \
               -e MYWHME_AWS_ACCESS_KEY=${{ secrets.MYWHME_AWS_ACCESS_KEY }} \
               -e MYWHME_AWS_SECRET_KEY=${{ secrets.MYWHME_AWS_SECRET_KEY }} \
@@ -83,7 +83,7 @@ jobs:
 #        with:
 #          host: ${{ secrets.QA_EC2_HOST }}
 #          username: ${{ secrets.QA_EC2_USERNAME }}
-#          key: ${{ secrets.QA_EC2_SSH_KEY }}
+#          key: ${{ secrets.EC2_SSH_KEY }}
 #          script: |
 #            docker network create myme-network || true
 #            docker stop backend-container || true
@@ -95,8 +95,8 @@ jobs:
 #              --network myme-network \
 #              -p 8080:8080 \
 #              -e DB_URL=${{ secrets.QA_DB_URL }} \
-#              -e DB_USERNAME=${{ secrets.QA_DB_USERNAME }} \
-#              -e DB_PASSWORD=${{ secrets.QA_DB_PASSWORD }} \
+#              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+#              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
 #              -e MYWHME_AWS_S3_BUCKET=${{ secrets.MYWHME_AWS_S3_BUCKET }} \
 #              -e MYWHME_AWS_ACCESS_KEY=${{ secrets.MYWHME_AWS_ACCESS_KEY }} \
 #              -e MYWHME_AWS_SECRET_KEY=${{ secrets.MYWHME_AWS_SECRET_KEY }} \
