@@ -71,7 +71,7 @@ public class MrpController {
 
     @GetMapping(value = "/{mrpOutputCode}/purchase/download", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public ResponseEntity<Resource> downloadPurchaseOrderReport(@PathVariable String mrpOutputCode) {
-        if (!"prod".equals(activeProfile)) {
+        if ("local".equals(activeProfile)) {
             return ResponseEntity.noContent().build();
         }
 
@@ -88,7 +88,7 @@ public class MrpController {
 
     @GetMapping(value = "/{mrpOutputCode}/production/download", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public ResponseEntity<Resource> downloadProductionOrderReport(@PathVariable String mrpOutputCode) {
-        if (!"prod".equals(activeProfile)) {
+        if ("local".equals(activeProfile)) {
             return ResponseEntity.noContent().build();
         }
 
@@ -105,7 +105,7 @@ public class MrpController {
 
     @GetMapping(value = "/{mrpOutputCode}/exception/download", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public ResponseEntity<Resource> downloadExceptionOrderReport(@PathVariable String mrpOutputCode) {
-        if (!"prod".equals(activeProfile)) {
+        if ("local".equals(activeProfile)) {
             return ResponseEntity.noContent().build();
         }
 

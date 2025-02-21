@@ -30,6 +30,9 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
     @Value("${aws.s3.bucket}")
     private String bucket;
 
+    @Value("${aws.bucket.name}")
+    private String bucketName;
+
     @Value("${app.base-url}")
     private String baseUrl;
 
@@ -147,7 +150,7 @@ public class CreateMrpReportFileAdapter implements CreateMrpReportFilePort {
     }
 
     private String generateFileKey(String mrpOutputCode, String reportType) {
-        return String.format("mrp-reports/%s/%s.xlsx", mrpOutputCode, reportType);
+        return String.format("%s/%s/%s.xlsx", bucketName, mrpOutputCode, reportType);
     }
 
     private void uploadToS3(XSSFWorkbook workbook, String key) throws IOException {

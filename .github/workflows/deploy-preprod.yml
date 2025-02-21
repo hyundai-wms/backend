@@ -1,0 +1,104 @@
+name: Deploy to Pre-Production (DEV & QA)
+
+on:
+  pull_request:
+    branches: [ "pre-production" ]
+
+jobs:
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
+
+  deploy-dev:
+    name: Deploy to DEV Environment
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to DEV EC2 Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_EC2_HOST }}
+          username: ${{ secrets.DEV_EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Docker 네트워크 생성 (이미 존재하면 무시)
+            docker network create myme-network || true
+
+            # 기존 컨테이너 중지 및 삭제
+            docker stop backend-container || true
+            docker rm backend-container || true
+
+            # 기존 이미지 삭제 (없으면 무시)
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest || true
+
+            # 최신 이미지 pull
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
+
+            # 새 컨테이너 실행 (SPRING_PROFILES_ACTIVE=dev 설정)
+            docker run -d \
+              --name backend-container \
+              --network myme-network \
+              -p 8080:8080 \
+              -e DB_URL=${{ secrets.DEV_DB_URL }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e MYWHME_AWS_S3_BUCKET=${{ secrets.MYWHME_AWS_S3_BUCKET }} \
+              -e MYWHME_AWS_ACCESS_KEY=${{ secrets.MYWHME_AWS_ACCESS_KEY }} \
+              -e MYWHME_AWS_SECRET_KEY=${{ secrets.MYWHME_AWS_SECRET_KEY }} \
+              -e SPRING_PROFILES_ACTIVE=dev \
+              ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
+
+#  deploy-qa:
+#    name: Deploy to QA Environment
+#    runs-on: ubuntu-latest
+#    needs: build
+#    steps:
+#      - name: Deploy to QA EC2 Server
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.QA_EC2_HOST }}
+#          username: ${{ secrets.QA_EC2_USERNAME }}
+#          key: ${{ secrets.EC2_SSH_KEY }}
+#          script: |
+#            docker network create myme-network || true
+#            docker stop backend-container || true
+#            docker rm backend-container || true
+#            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest || true
+#            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
+#            docker run -d \
+#              --name backend-container \
+#              --network myme-network \
+#              -p 8080:8080 \
+#              -e DB_URL=${{ secrets.QA_DB_URL }} \
+#              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+#              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+#              -e MYWHME_AWS_S3_BUCKET=${{ secrets.MYWHME_AWS_S3_BUCKET }} \
+#              -e MYWHME_AWS_ACCESS_KEY=${{ secrets.MYWHME_AWS_ACCESS_KEY }} \
+#              -e MYWHME_AWS_SECRET_KEY=${{ secrets.MYWHME_AWS_SECRET_KEY }} \
+#              -e SPRING_PROFILES_ACTIVE=qa \
+#              ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
