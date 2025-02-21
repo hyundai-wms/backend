@@ -40,6 +40,8 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .addServersItem(new Server().url("https://api.mywareho.me").description("Production"))
+                .addServersItem(new Server().url("https://qa.api.mywareho.me").description("QA"))
+                .addServersItem(new Server().url("https://dev.api.mywareho.me").description("Dev"))
                 .addServersItem(new Server().url("http://localhost:8080").description("Local"))
                 .info(info)
                 .addSecurityItem(securityRequirement)
