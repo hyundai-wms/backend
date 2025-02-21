@@ -28,17 +28,25 @@ public class User extends BaseTimeEntity {
 
     private Role role;
 
+    private Boolean isInitLogin;
+
     @Builder
-    public User(String name, String phoneNumber, String id, String password, Role role) {
+    public User(String name, String phoneNumber, String id, String password, Role role, Boolean isInitLogin) {
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.id = id;
         this.password = password;
         this.role = role;
+        this.isInitLogin = isInitLogin;
+    }
+
+    public void updateEncryptedPassword(String password) {
+        this.password = password;
     }
 
     public void changePassword(String password) {
         this.password = password;
+        this.isInitLogin = false;
     }
 
     public void changeRole(Role role) {

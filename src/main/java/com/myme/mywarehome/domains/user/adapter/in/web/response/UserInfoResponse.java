@@ -10,6 +10,7 @@ public record UserInfoResponse(
         String phoneNumber,
         String id,
         String role,
+        Boolean isInitLogin,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -20,6 +21,7 @@ public record UserInfoResponse(
                 user.getPhoneNumber(),
                 user.getId(),
                 user.getRole().getRoleName(),
+                user.getIsInitLogin(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
