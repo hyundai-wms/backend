@@ -10,6 +10,7 @@ import com.myme.mywarehome.domains.user.application.domain.User;
 import com.myme.mywarehome.domains.user.application.exception.UserNotFoundException;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GetNotificationAdapter implements GetNotificationPort {
@@ -61,10 +63,18 @@ public class GetNotificationAdapter implements GetNotificationPort {
                         .map(event -> ServerSentEvent.builder()
                                 .event("notification")
                                 .data(event.data())
-                                .build())
-                );
+                                .build()))
+                .onErrorResume(error -> {
+                    log.error("Error in user stream:", error);
+                    return Flux.empty(); // 에러 발생 시 빈 Flux 반환하여 스트림 유지
+                });
 
-        return Flux.concat(initialNotifications, updates);
+        // userMono가 empty인 경우도 처리
+        Flux<ServerSentEvent<Object>> safeUpdates = userMono
+                .switchIfEmpty(Mono.error(new RuntimeException("User not found")))
+                .flatMapMany(user -> updates);
+
+        return Flux.concat(initialNotifications, safeUpdates);
     }
 
     @Override

@@ -82,7 +82,10 @@ public class GetStockAdapter implements GetStockPort {
             return Flux.concat(
                     Flux.just(initialEvent),
                     updates
-            );
+            ).onErrorContinue((err, obj) -> {
+                log.error("Error in stream:", err);
+                // 에러가 발생해도 스트림 유지
+            });
         });
     }
 
