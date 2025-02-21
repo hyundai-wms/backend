@@ -42,4 +42,9 @@ public class GetUserAdapter implements GetUserPort {
     public boolean existsUserByPhoneNumber(String phoneNumber) {
         return userJpaRepository.existsByPhoneNumber(phoneNumber);
     }
+
+    @Override
+    public List<User> findAllUserByRole(Role role) {
+        return userJpaRepository.findAllByRole(role);
+    }
 }

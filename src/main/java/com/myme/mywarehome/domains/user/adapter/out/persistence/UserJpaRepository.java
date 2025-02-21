@@ -2,6 +2,7 @@ package com.myme.mywarehome.domains.user.adapter.out.persistence;
 
 import com.myme.mywarehome.domains.user.application.domain.Role;
 import com.myme.mywarehome.domains.user.application.domain.User;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,4 +38,8 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
             @Param("role") Role role,
             Pageable pageable
     );
+
+    @Query("SELECT u FROM User u WHERE " +
+            "u.role = :role")
+    List<User> findAllByRole(Role role);
 }

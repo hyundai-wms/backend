@@ -22,7 +22,7 @@ import reactor.core.publisher.Sinks;
 @Component
 @RequiredArgsConstructor
 public class GetBayAdapter implements GetBayPort {
-    public final BayJpaRepository bayJpaRepository;
+    private final BayJpaRepository bayJpaRepository;
     private final Sinks.Many<BayFluctuationEvent> sinks = Sinks.many().multicast().onBackpressureBuffer();
 
     @Override
