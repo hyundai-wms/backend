@@ -1,12 +1,13 @@
 package com.myme.mywarehome.domains.notification.application.port.in.result;
 
 import com.myme.mywarehome.domains.notification.application.domain.Notification;
+import com.myme.mywarehome.domains.notification.application.domain.UserNotification;
 import java.time.LocalDateTime;
 import lombok.Builder;
 
 @Builder
 public record NotificationResult(
-        Long notificationId,
+        Long userNotificationId,
         String type,
         String code,
         String title,
@@ -15,16 +16,16 @@ public record NotificationResult(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
         ) {
-    public static NotificationResult of(Notification notification, Boolean isRead) {
+    public static NotificationResult of(UserNotification userNotification) {
         return new NotificationResult(
-                notification.getNotificationId(),
-                notification.getNotificationType(),
-                notification.getCode(),
-                notification.getTitle(),
-                notification.getMessage(),
-                isRead,
-                notification.getCreatedAt(),
-                notification.getUpdatedAt()
+                userNotification.getUserNotificationId(),
+                userNotification.getNotification().getNotificationType(),
+                userNotification.getNotification().getCode(),
+                userNotification.getNotification().getTitle(),
+                userNotification.getNotification().getMessage(),
+                userNotification.getIsRead(),
+                userNotification.getNotification().getCreatedAt(),
+                userNotification.getNotification().getUpdatedAt()
         );
     }
 }

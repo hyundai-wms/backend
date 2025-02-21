@@ -3,6 +3,7 @@ package com.myme.mywarehome.domains.notification.adapter.out.persistence;
 import com.myme.mywarehome.domains.notification.application.domain.UserNotification;
 import com.myme.mywarehome.domains.user.application.domain.Role;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,4 +34,8 @@ public interface UserNotificationJpaRepository extends JpaRepository<UserNotific
     default List<UserNotification> findTop5ByUserRoleOrderByCreatedAtDesc(Role role) {
         return findTop5ByUserRoleOrderByCreatedAtDesc(role, PageRequest.of(0, 5));
     }
+
+    @Query("SELECT un FROM UserNotification un WHERE " +
+            "un.userNotificationId = :userNotificationId")
+    Optional<UserNotification> findByUserNotificationId(Long userNotificationId);
 }

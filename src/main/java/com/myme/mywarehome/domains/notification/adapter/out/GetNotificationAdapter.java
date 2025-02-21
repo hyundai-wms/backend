@@ -38,7 +38,7 @@ public class GetNotificationAdapter implements GetNotificationPort {
                         userNotificationJpaRepository.findTop5ByUserRoleOrderByCreatedAtDesc(user.getRole())
                 ))
                 .map(notification -> NotificationResult.builder()
-                        .notificationId(notification.getUserNotificationId())
+                        .userNotificationId(notification.getUserNotificationId())
                         .type(notification.getNotification().getNotificationType())
                         .code(notification.getNotification().getCode())
                         .title(notification.getNotification().getTitle())
