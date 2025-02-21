@@ -29,6 +29,7 @@ public record CreateUserRequest(
                         .phoneNumber(this.phoneNumber)
                         .id(this.id)
                         .role(Role.fromString(this.role))
+                        .isInitLogin(true)
                         .build();
         }
 }

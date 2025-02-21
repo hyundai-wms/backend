@@ -94,7 +94,10 @@ public class GetReceiptPlanAdapter implements GetReceiptPlanPort {
             return Flux.concat(
                     Flux.just(initialEvent),
                     updates
-            );
+            ).onErrorContinue((err, obj) -> {
+                log.error("Error in stream:", err);
+                // 에러가 발생해도 스트림 유지
+            });
         });
     }
 

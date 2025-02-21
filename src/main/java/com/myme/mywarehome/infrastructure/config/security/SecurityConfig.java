@@ -56,6 +56,15 @@ public class SecurityConfig {
                                         "/v1/productions/mrp/*/production/download",
                                         "/v1/productions/mrp/*/exception/download").permitAll()
 
+                                .requestMatchers(
+                                        "/v1/notifications/worker-test",
+                                        "/v1/notifications/wms-manager-test",
+                                        "v1/notifications/middle-manager-test",
+                                        "v1/notifications/admin-test"
+                                ).hasRole("ADMIN")
+
+                                .requestMatchers("/v1/notifications/**").hasRole("WORKER")
+
                                 // 자신의 정보 조회
                                 .requestMatchers("/v1/users/me").hasRole("WORKER")
 
@@ -96,7 +105,6 @@ public class SecurityConfig {
                             ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.SESSION_EXPIRED);
                             response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
                         })
-                        .expiredUrl("/v1/auth/login")
 
                 )
                 .exceptionHandling(exception -> exception
@@ -151,7 +159,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://mywareho.me", "http://localhost:5173", "https://api.mywareho.me", "http://localhost:8080"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://mywareho.me", "http://localhost:5173", "https://dev.api.mywareho.me", "https://qa.api.mywareho.me", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
 

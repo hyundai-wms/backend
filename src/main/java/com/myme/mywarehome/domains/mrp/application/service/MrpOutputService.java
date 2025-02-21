@@ -75,7 +75,7 @@ public class MrpOutputService implements MrpOutputUseCase {
         String purchaseOrderReportLink = null;
         String productionPlanningReportLink = null;
 
-        if ("prod".equals(activeProfile)) {
+        if (!"local".equals(activeProfile)) {
             purchaseOrderReportLink = createMrpReportFilePort.createAndUploadPurchaseOrderReport(mrpOutput, optimizedPurchaseReports);
             productionPlanningReportLink = createMrpReportFilePort.createAndUploadProductionPlanningReport(mrpOutput, optimizedProductionReports);
         }
@@ -195,7 +195,7 @@ public class MrpOutputService implements MrpOutputUseCase {
         // Excel 파일 생성 및 S3 업로드
         String exceptionReportLink = null;
 
-        if ("prod".equals(activeProfile)) {
+        if (!"local".equals(activeProfile)) {
             exceptionReportLink = createMrpReportFilePort.createAndUploadMrpExceptionReport(mrpOutput, result.mrpExceptionReports());
         }
 

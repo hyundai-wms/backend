@@ -14,4 +14,5 @@ public interface GetUserPort {
     Page<User> findAllUsers(String name, String id, String phoneNumber, Role role, Pageable pageable);
     boolean existsUserById(String id);
     boolean existsUserByPhoneNumber(String phoneNumber);
+    List<User> findAllUserByRole(Role role);
 }

@@ -23,6 +23,7 @@ public class InitAdminConfig implements CommandLineRunner {
                     .id("admin")
                     .password(passwordEncoder.encode("1234"))
                     .role(Role.ROLE_ADMIN)
+                    .isInitLogin(true)
                     .build();
 
             userJpaRepository.save(admin);

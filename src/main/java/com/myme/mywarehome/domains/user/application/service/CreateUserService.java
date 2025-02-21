@@ -57,7 +57,7 @@ public class CreateUserService implements CreateUserUseCase {
         }
 
         // 암호화된 비밀번호 저장
-        user.changePassword(encodedPassword);
+        user.updateEncryptedPassword(encodedPassword);
         User createdUser = createUserPort.create(user);
 
         // 생성된 유저에 임시 비밀번호를 함께 전달

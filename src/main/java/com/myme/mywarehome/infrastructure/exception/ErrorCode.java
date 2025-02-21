@@ -29,6 +29,8 @@ public enum ErrorCode {
     UNAUTHORIZED(401, "A004", "인증되지 않은 사용자입니다."),
     FORBIDDEN(403, "A005", "권한이 없습니다."),
     INVALID_CURRENT_PASSWORD(400, "A006", "기존 비밀번호가 유효하지 않습니다."),
+    LOGIN_IN_PROGRESS(429, "A007", "이미 로그인이 진행 중입니다."),
+    UNEXPECTED_LOGIN(500, "A008", "로그인 도중 알 수 없는 오류가 발생하였습니다."),
 
     // Product
     PRODUCT_NOT_FOUND(404, "P001", "해당 물품이 존재하지 않습니다."),
@@ -58,6 +60,9 @@ public enum ErrorCode {
     MRP_REPORT_CREATE_FAILED(500, "M002", "MRP 보고서를 생성하는데 실패하였습니다."),
     MRP_OUTPUT_NOT_FOUND(404, "M003", "해당 MRP 동작 결과를 찾을 수 없습니다."),
     MRP_CANNOT_ORDER(400, "M004", "해당 MRP 결과는 발주/생산 지시를 할 수 없습니다."),
+
+    // Notification
+    NOTIFICATION_NOT_FOUND(404, "N001", "해당 알림 정보를 찾을 수 없습니다."),
     ;
 
 
