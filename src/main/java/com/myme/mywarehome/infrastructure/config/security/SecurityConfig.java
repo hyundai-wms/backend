@@ -96,7 +96,6 @@ public class SecurityConfig {
                             ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.SESSION_EXPIRED);
                             response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
                         })
-                        .expiredUrl("/v1/auth/login")
 
                 )
                 .exceptionHandling(exception -> exception
