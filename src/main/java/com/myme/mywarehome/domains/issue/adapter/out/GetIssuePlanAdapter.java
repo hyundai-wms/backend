@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import com.myme.mywarehome.domains.receipt.adapter.out.event.TodayReceiptEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.codec.ServerSentEvent;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GetIssuePlanAdapter implements GetIssuePlanPort {
@@ -94,7 +96,10 @@ public class GetIssuePlanAdapter implements GetIssuePlanPort {
             return Flux.concat(
                     Flux.just(initialEvent),
                     updates
-            );
+            ).onErrorContinue((err, obj) -> {
+                log.error("Error in stream:", err);
+                // 에러가 발생해도 스트림 유지
+            });
         });
     }
 
