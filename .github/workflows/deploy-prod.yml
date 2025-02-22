@@ -96,10 +96,6 @@ jobs:
             docker run -d \
               --name backend-container \
               --network myme-network \
-              --log-driver=awslogs \
-              --log-opt awslogs-region=ap-northeast-2 \
-              --log-opt awslogs-group=mywarehome-backend-logs \
-              --log-opt awslogs-stream=$(hostname)-backend \
               -p 8080:8080 \
               -e DB_URL=${{ secrets.DB_URL }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
@@ -182,10 +178,6 @@ jobs:
             docker run -d \
               --name backend-container \
               --network myme-network \
-              --log-driver=awslogs \
-              --log-opt awslogs-region=ap-northeast-2 \
-              --log-opt awslogs-group=mywarehome-backend-logs \
-              --log-opt awslogs-stream=$(hostname)-backend \
               -p 8080:8080 \
               -e DB_URL=${{ secrets.DB_URL }} \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
