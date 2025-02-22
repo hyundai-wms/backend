@@ -80,6 +80,8 @@ public class GetNotificationService implements GetNotificationUseCase {
                     .title(notification.getTitle())
                     .message(notification.getMessage())
                     .isRead(false)
+                    .createdAt(savedNotification.get().getCreatedAt())
+                    .updatedAt(savedNotification.get().getUpdatedAt())
                     .build();
 
             // 해당 사용자의 Role에 맞는 알림만 전송
