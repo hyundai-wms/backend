@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      # AWS CLI 설정 추가
+      # AWS CLI 설정
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -47,19 +47,41 @@ jobs:
           aws-secret-access-key: ${{ secrets.MYWHME_AWS_SECRET_KEY }}
           aws-region: ap-northeast-2
 
-      # 서버1을 Target Group에서 제외
-      - name: Deregister First Server
+      # 초기 서버 상태 확인
+      - name: Check Initial Server States
+        id: server-check
         run: |
-          aws elbv2 deregister-targets \
+          # 서버1 상태 확인
+          SERVER1_STATUS=$(aws elbv2 describe-target-health \
             --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.EC2_ID_1 }}
-          # 기존 연결이 종료될 때까지 대기
-          echo "Waiting for connection draining..."
-          sleep 30
+            --targets Id=${{ secrets.EC2_ID_1 }} \
+            --query 'TargetHealthDescriptions[0].TargetHealth.State' \
+            --output text || echo "unused")
+          
+          # 서버2 상태 확인
+          SERVER2_STATUS=$(aws elbv2 describe-target-health \
+            --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
+            --targets Id=${{ secrets.EC2_ID_2 }} \
+            --query 'TargetHealthDescriptions[0].TargetHealth.State' \
+            --output text || echo "unused")
+          
+          echo "SERVER1_STATUS=${SERVER1_STATUS}" >> $GITHUB_ENV
+          echo "SERVER2_STATUS=${SERVER2_STATUS}" >> $GITHUB_ENV
+          
+          # 배포 순서 결정
+          if [ "$SERVER1_STATUS" != "healthy" ] && [ "$SERVER2_STATUS" != "healthy" ]; then
+            echo "DEPLOY_SEQUENCE=both" >> $GITHUB_ENV
+          elif [ "$SERVER1_STATUS" != "healthy" ]; then
+            echo "DEPLOY_SEQUENCE=server1-first" >> $GITHUB_ENV
+          elif [ "$SERVER2_STATUS" != "healthy" ]; then
+            echo "DEPLOY_SEQUENCE=server2-first" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_SEQUENCE=normal" >> $GITHUB_ENV
+          fi
 
-      # 첫 번째 서버 배포
+      # 서버1 배포
       - name: Deploy to First Server
-        id: deploy-first
+        if: env.DEPLOY_SEQUENCE != 'server2-first'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST_1 }}
@@ -89,8 +111,9 @@ jobs:
               -e SPRING_PROFILES_ACTIVE=prod \
               ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
 
-      # 첫 번째 서버 Health Check
+      # 서버1 헬스 체크
       - name: Health check for First Server
+        if: env.DEPLOY_SEQUENCE != 'server2-first'
         id: health-first
         run: |
           # Application Health Check
@@ -107,6 +130,11 @@ jobs:
             sleep 10
           done
           
+          # Target Group에 등록
+          aws elbv2 register-targets \
+            --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
+            --targets Id=${{ secrets.EC2_ID_1 }}
+          
           # ALB Target Health Check
           for i in {1..10}; do
             STATUS=$(aws elbv2 describe-target-health \
@@ -117,30 +145,29 @@ jobs:
           
             if [ "$STATUS" = "healthy" ]; then
               echo "Target is healthy"
-              exit 0
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "Target health check failed"
+              exit 1
             fi
             echo "Waiting for target to become healthy... (attempt $i/10)"
             sleep 10
           done
-          echo "Target health check failed"
-          exit 1
 
-      # 서버1을 다시 Target Group에 등록하고, 서버2를 제외
-      - name: Switch Traffic
+      # 서버2가 healthy 상태이면 제거
+      - name: Deregister Second Server if Healthy
+        if: env.DEPLOY_SEQUENCE == 'normal' && env.SERVER2_STATUS == 'healthy'
         run: |
-          aws elbv2 register-targets \
-            --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.EC2_ID_1 }}
           aws elbv2 deregister-targets \
             --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
             --targets Id=${{ secrets.EC2_ID_2 }}
-          # 트래픽 전환 대기
-          echo "Waiting for traffic switch..."
+          echo "Waiting for connection draining..."
           sleep 30
 
-      # 두 번째 서버 배포
+      # 서버2 배포
       - name: Deploy to Second Server
-        id: deploy-second
+        if: env.DEPLOY_SEQUENCE != 'server1-first'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST_2 }}
@@ -170,8 +197,9 @@ jobs:
               -e SPRING_PROFILES_ACTIVE=prod \
               ${{ secrets.DOCKERHUB_USERNAME }}/mywarehome-backend:latest
 
-      # 두 번째 서버 Health Check
+      # 서버2 헬스 체크
       - name: Health check for Second Server
+        if: env.DEPLOY_SEQUENCE != 'server1-first'
         id: health-second
         run: |
           # Application Health Check
@@ -188,6 +216,11 @@ jobs:
             sleep 10
           done
           
+          # Target Group에 등록
+          aws elbv2 register-targets \
+            --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
+            --targets Id=${{ secrets.EC2_ID_2 }}
+          
           # ALB Target Health Check
           for i in {1..10}; do
             STATUS=$(aws elbv2 describe-target-health \
@@ -198,29 +231,33 @@ jobs:
           
             if [ "$STATUS" = "healthy" ]; then
               echo "Target is healthy"
-              exit 0
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "Target health check failed"
+              exit 1
             fi
             echo "Waiting for target to become healthy... (attempt $i/10)"
             sleep 10
           done
-          echo "Target health check failed"
-          exit 1
-
-      # 서버2를 다시 Target Group에 등록
-      - name: Restore Traffic
-        run: |
-          aws elbv2 register-targets \
-            --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.EC2_ID_2 }}
 
       # 롤백 단계 (실패 시 실행)
       - name: Rollback deployment
         if: failure()
         run: |
           echo "Deployment failed, rolling back..."
-          # 두 서버 모두 Target Group에 다시 등록
-          aws elbv2 register-targets \
-            --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.EC2_ID_1 }} Id=${{ secrets.EC2_ID_2 }}
+          
+          # 초기 상태로 복구
+          if [ "$SERVER1_STATUS" = "healthy" ]; then
+            aws elbv2 register-targets \
+              --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
+              --targets Id=${{ secrets.EC2_ID_1 }}
+          fi
+          
+          if [ "$SERVER2_STATUS" = "healthy" ]; then
+            aws elbv2 register-targets \
+              --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
+              --targets Id=${{ secrets.EC2_ID_2 }}
+          fi
           
           echo "Rollback completed. Please check server status manually."
