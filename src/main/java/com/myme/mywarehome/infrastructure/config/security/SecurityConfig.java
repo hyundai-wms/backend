@@ -60,7 +60,8 @@ public class SecurityConfig {
                                         "/v1/notifications/worker-test",
                                         "/v1/notifications/wms-manager-test",
                                         "v1/notifications/middle-manager-test",
-                                        "v1/notifications/admin-test"
+                                        "v1/notifications/admin-test",
+                                        "v1/notifications/manually-send"
                                 ).hasRole("ADMIN")
 
                                 .requestMatchers("/v1/notifications/**").hasRole("WORKER")
@@ -159,7 +160,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://mywareho.me", "http://localhost:5173", "https://dev.api.mywareho.me", "https://qa.api.mywareho.me", "http://localhost:8080"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://mywareho.me", "http://localhost:5173", "https://dev.api.mywareho.me", "https://api.mywareho.me", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
 
