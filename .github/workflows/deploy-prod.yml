@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [ "test" ] # todo : 나중에 production으로 변경 필요
+    branches: [ "test-production" ] # todo : 나중에 production으로 변경 필요
 
 jobs:
   build:
