@@ -65,7 +65,7 @@ public class IssueController {
     @GetMapping("/today")
     public CommonResponse<TodayIssueResponse> getTodayIssues(
             @SelectedDate LocalDate selectedDate,
-            @PageableDefault Pageable pageable
+            @PageableDefault @SortDefault(sort="issuePlanDate") Pageable pageable
             ) {
         return CommonResponse.from(
                 TodayIssueResponse.from(
