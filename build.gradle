@@ -2,10 +2,49 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'com.myme'
 version = '0.0.1-SNAPSHOT'
+
+jacoco {
+	toolVersion = '0.8.8'
+}
+
+test {
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		html.required = true
+		xml.required = false
+		csv.required = false
+	}
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, include: ['com/myme/mywarehome/domains/*/application/service/**'],
+				exclude: ['com/myme/mywarehome/domains/*/application/service/dto/**'])
+	}))
+	finalizedBy jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			element = 'CLASS'
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.9
+			}
+		}
+	}
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, include: ['com/myme/mywarehome/domains/*/application/service/**'])
+	}))
+}
 
 java {
 	toolchain {
