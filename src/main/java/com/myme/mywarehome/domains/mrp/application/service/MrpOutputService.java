@@ -10,6 +10,7 @@ import com.myme.mywarehome.domains.mrp.application.port.out.CreateMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.port.out.CreateMrpReportFilePort;
 import com.myme.mywarehome.domains.mrp.application.port.out.UpdateMrpOutputPort;
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpCalculateResultDto;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.function.BiPredicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -36,6 +38,7 @@ public class MrpOutputService implements MrpOutputUseCase {
 
     @Override
     @Transactional
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     public void saveResults(MrpInputCommand command, MrpCalculateResultDto result) {
         // 이전 주문들 비활성화
         updateMrpOutputPort.deactivatePreviousOrders();

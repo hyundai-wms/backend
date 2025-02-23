@@ -60,6 +60,7 @@ public enum ErrorCode {
     MRP_REPORT_CREATE_FAILED(500, "M002", "MRP 보고서를 생성하는데 실패하였습니다."),
     MRP_OUTPUT_NOT_FOUND(404, "M003", "해당 MRP 동작 결과를 찾을 수 없습니다."),
     MRP_CANNOT_ORDER(400, "M004", "해당 MRP 결과는 발주/생산 지시를 할 수 없습니다."),
+    MRP_CALCULATION_IN_PROGRESS(400, "M005", "MRP 계산이 이미 진행 중입니다. 잠시 후 다시 시도해 주세요."),
 
     // Notification
     NOTIFICATION_NOT_FOUND(404, "N001", "해당 알림 정보를 찾을 수 없습니다."),
