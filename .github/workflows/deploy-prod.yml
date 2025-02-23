@@ -129,7 +129,7 @@ jobs:
           # Target Group에 등록
           aws elbv2 register-targets \
             --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.EC2_ID_1 }}
+            --targets Id=${{ secrets.EC2_ID_1 }},Port=8080
 
       # 서버2가 healthy 상태이면 제거
       - name: Deregister Second Server if Healthy
@@ -191,7 +191,7 @@ jobs:
           # Target Group에 등록
           aws elbv2 register-targets \
             --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.EC2_ID_2 }}
+            --targets Id=${{ secrets.EC2_ID_2 }},Port=8080
 
       # 롤백 단계 (실패 시 실행)
       - name: Rollback deployment
@@ -203,13 +203,13 @@ jobs:
           if [ "$SERVER1_STATUS" = "healthy" ]; then
             aws elbv2 register-targets \
               --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-              --targets Id=${{ secrets.EC2_ID_1 }}
+              --targets Id=${{ secrets.EC2_ID_1 }},Port=8080
           fi
           
           if [ "$SERVER2_STATUS" = "healthy" ]; then
             aws elbv2 register-targets \
               --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} \
-              --targets Id=${{ secrets.EC2_ID_2 }}
+              --targets Id=${{ secrets.EC2_ID_2 }},Port=8080
           fi
           
           echo "Rollback completed. Please check server status manually."
