@@ -11,11 +11,11 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.nio.charset.StandardCharsets;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 @Slf4j
 @Aspect
@@ -94,7 +94,17 @@ public class RequestLoggingAspect {
 
             String contentType = request.getContentType();
             if (contentType != null && contentType.contains("application/json")) {
-                return StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
+                ContentCachingRequestWrapper wrapper;
+                if (request instanceof ContentCachingRequestWrapper) {
+                    wrapper = (ContentCachingRequestWrapper) request;
+                } else {
+                    wrapper = new ContentCachingRequestWrapper(request);
+                }
+
+                byte[] content = wrapper.getContentAsByteArray();
+                if (content.length > 0) {
+                    return new String(content, StandardCharsets.UTF_8);
+                }
             }
         } catch (Exception e) {
             log.warn("[API-WARN] Failed to read request content", e);
