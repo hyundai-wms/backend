@@ -2,18 +2,13 @@ package com.myme.mywarehome.infrastructure.config.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myme.mywarehome.infrastructure.common.response.ErrorResponse;
+import com.myme.mywarehome.infrastructure.config.security.filter.RequestCachingFilter;
 import com.myme.mywarehome.infrastructure.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
-import org.springframework.security.access.expression.SecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyAuthoritiesMapper;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -21,13 +16,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
-import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -48,6 +41,7 @@ public class SecurityConfig {
                 .securityMatcher("/v1/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cor -> cor.configurationSource(corsConfigurationSource()))
+                .addFilterBefore(new RequestCachingFilter(), SecurityContextHolderFilter.class)
                 .authorizeHttpRequests(auth ->
                         auth
                                 // 공개 엔드포인트
@@ -155,7 +149,6 @@ public class SecurityConfig {
         expressionHandler.setRoleHierarchy(roleHierarchy());
         return expressionHandler;
     }
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
