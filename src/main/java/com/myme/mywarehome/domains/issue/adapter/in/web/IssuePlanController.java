@@ -81,7 +81,7 @@ public class IssuePlanController {
     @GetMapping
     public CommonResponse<GetAllIssuePlanResponse>getAllIssuePlans(
             @Valid GetAllIssuePlanRequest getAllIssuePlanRequest,
-            @PageableDefault(sort = "issuePlanDate", direction = Direction.DESC) Pageable pageable
+            @PageableDefault(sort = "issuePlanDate") Pageable pageable
     ) {
         return CommonResponse.from(
                 GetAllIssuePlanResponse.from(getAllIssuePlanUseCase.getAllIssuePlan(getAllIssuePlanRequest.toCommand(), pageable))
