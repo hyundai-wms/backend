@@ -33,7 +33,8 @@ public class RequestLoggingAspect {
     private static final int MAX_RESPONSE_CONTENT_LENGTH = 1000;
     private static final int LONG_EXECUTION_TIME = 1000;
 
-    @Around("execution(* com.myme.mywarehome.domains.*.adapter.in.web.*.*(..))")
+    @Around("execution(* com.myme.mywarehome.domains.*.adapter.in.web.*.*(..)) && " +
+            "!execution(* com.myme.mywarehome.domains.*.adapter.in.web.*.download*(..))")
     public Object loggingApi(ProceedingJoinPoint joinPoint) throws Throwable {
         // MDC에 요청 ID 추가
         String requestId = UUID.randomUUID().toString();
