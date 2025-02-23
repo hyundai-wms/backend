@@ -10,6 +10,7 @@ import com.myme.mywarehome.domains.mrp.application.port.in.MrpOrderUseCase;
 import com.myme.mywarehome.infrastructure.common.response.CommonResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/productions/mrp")
 @RequiredArgsConstructor
@@ -44,7 +46,12 @@ public class MrpController {
     public CommonResponse<Void> createMrpReport(
             @Valid @RequestBody MrpInputRequest request
     ) {
+        log.info("MRP calculation started - Input parameters: kappa={}, gamma={}, nu={}, theta={}, dueDate={}",
+                request.kappa(), request.gamma(), request.nu(), request.theta(), request.dueDate());
+
         mrpOperationUseCase.run(request.toCommand());
+
+        log.info("MRP calculation completed successfully");
         return CommonResponse.empty();
     }
 

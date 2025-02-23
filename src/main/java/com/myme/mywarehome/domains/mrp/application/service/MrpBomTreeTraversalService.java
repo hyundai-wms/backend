@@ -8,25 +8,38 @@ import com.myme.mywarehome.domains.mrp.application.port.in.MrpBomTreeTraversalUs
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpCalculatorUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.in.command.MrpInputCommand;
 import com.myme.mywarehome.domains.mrp.application.service.dto.*;
-
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-
+import com.myme.mywarehome.infrastructure.config.aspect.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
+
     private final MrpCalculatorUseCase mrpCalculatorUseCase;
 
     @Override
-    public MrpCalculateResultDto traverse(MrpInputCommand command, UnifiedBomDataDto unifiedBomData, MrpContextDto context) {
+    @LogExecutionTime(value = "MRP BomTree Traversal")
+    public MrpCalculateResultDto traverse(MrpInputCommand command,
+            UnifiedBomDataDto unifiedBomData,
+            MrpContextDto context) {
+        // 전체 트래버설 시간 측정
+        long startTime = System.currentTimeMillis();
+        String operationId = MDC.get("operationId");
+
+        // 트래버설 시작 로그
+        log.info("MRP BOM Tree traversal started - operationId: {}, virtualRoot: {}, computedDate: {}",
+                operationId,
+                unifiedBomData.virtualRoot().getProductNumber(),
+                context.getComputedDate());
+
         LinkedList<MrpNodeDto> productDeque = new LinkedList<>();
         List<PurchaseOrderReport> purchaseReports = new ArrayList<>();
         List<ProductionPlanningReport> productionReports = new ArrayList<>();
@@ -48,36 +61,56 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
         while (!productDeque.isEmpty()) {
             MrpNodeDto currentNode = productDeque.pollFirst();
 
+            // 각 노드(제품) 처리 전 로그
+            log.info("Processing node - productNumber: {}, requiredPartsCount: {}",
+                    currentNode.product().getProductNumber(),
+                    currentNode.requiredPartsCount());
+
             // 가상 루트는 건너뛰기
-            if (currentNode.product().getProductNumber().equals("VIRTUAL-ROOT")) {
-                // 자식 노드들만 큐에 추가
+            if ("VIRTUAL-ROOT".equals(currentNode.product().getProductNumber())) {
                 processChildNodes(currentNode, unifiedBomData, productDeque);
                 continue;
             }
 
             // 실제 제품 노드 처리
             MrpCalculateResultDto result = mrpCalculatorUseCase.calculate(currentNode, context);
+
+            // 계산 결과 로그
+            log.info("Calculation result - productNumber: {}, orderQuantity: {}, exceptionCount: {}, leadTimeDays: {}",
+                    currentNode.product().getProductNumber(),
+                    result.nextRequiredPartsCount(), // 수정된 부분
+                    result.mrpExceptionReports().size(),
+                    result.leadTimeDays());
+
+            // 예외가 있으면 problemNodes에 추가
             if (result.hasExceptions()) {
-                // 수정: 예외를 바로 반환하지 않고 저장
+                MrpExceptionReport firstException = result.mrpExceptionReports().get(0);
                 problemNodes.add(new MrpProblemNode(
                         currentNode.product(),
-                        result.mrpExceptionReports().get(0).getExceptionType(),
-                        result.mrpExceptionReports().get(0).getExceptionMessage(),
+                        firstException.getExceptionType(),
+                        firstException.getExceptionMessage(),
                         currentNode.requiredPartsCount(),
                         result.leadTimeDays(),
                         currentNode.product().getBayList().size() * 10
                 ));
+
+                log.warn("Exception occurred - productNumber: {}, exceptionType: {}, exceptionMessage: {}",
+                        currentNode.product().getProductNumber(),
+                        firstException.getExceptionType(),
+                        firstException.getExceptionMessage());
+
                 if (currentNode.product().getCompany().getIsVendor()) {
                     vendorResults.add(result);
                 }
-                continue;  // 다음 노드로 진행
+                // 예외 발생 시 계속 자식 노드를 탐색할지 여부는 비즈니스 로직에 따라 결정
+                continue;
             }
 
             // vendor인 경우 따로 보관
             if (currentNode.product().getCompany().getIsVendor()) {
                 vendorResults.add(result);
             } else {
-                // vendor가 아닌 경우 바로 추가
+                // vendor가 아닌 경우 보고서들 바로 추가
                 purchaseReports.addAll(result.purchaseOrderReports());
                 productionReports.addAll(result.productionPlanningReports());
             }
@@ -86,8 +119,10 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
             processChildNodes(currentNode, unifiedBomData, productDeque);
         }
 
-        // 문제가 있는 경우
+        // 문제가 있는 경우 최종 예외 처리
         if (!problemNodes.isEmpty()) {
+            log.warn("Problem nodes detected - count: {}", problemNodes.size());
+
             // vendor의 최대 LT 찾기
             int maxLeadTime = vendorResults.stream()
                     .mapToInt(MrpCalculateResultDto::leadTimeDays)
@@ -95,16 +130,14 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                     .orElse(0);
 
             LocalDate expectedMinOrderDate = context.getComputedDate().minusDays(maxLeadTime);
-
             long daysBetween = Math.abs(ChronoUnit.DAYS.between(expectedMinOrderDate, LocalDate.now()));
             LocalDate minDueDate = command.dueDate().plusDays(daysBetween);
 
             List<MrpExceptionReport> finalExceptionReports = problemNodes.stream()
                     .map(node -> {
-                        String solution = node.exceptionType().equals("LEAD_TIME_VIOLATION") ?
-                                String.format("이 제품의 최소 납기일은 %s입니다.",
-                                        minDueDate) :
-                                String.format("현재 가용 Bin으로 처리 가능한 최대 수량은 %d입니다.",
+                        String solution = node.exceptionType().equals("LEAD_TIME_VIOLATION")
+                                ? String.format("이 제품의 최소 납기일은 %s입니다.", minDueDate)
+                                : String.format("현재 가용 Bin으로 처리 가능한 최대 수량은 %d입니다.",
                                         node.availableBins() * 10 * 25);
 
                         return MrpExceptionReport.builder()
@@ -114,6 +147,11 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                                 .build();
                     })
                     .toList();
+
+            long endTime = System.currentTimeMillis();
+            long totalDuration = endTime - startTime;
+            log.warn("MRP BOM Tree traversal ended with exceptions - Duration: {}ms, operationId: {}, problemCount: {}",
+                    totalDuration, operationId, problemNodes.size());
 
             return new MrpCalculateResultDto(
                     -1,
@@ -148,7 +186,18 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                     purchaseReports.add(adjustedReport);
                 }
             }
+            log.info("Vendor results adjusted - maxLeadTime: {}, vendorResultCount: {}",
+                    maxLeadTime, vendorResults.size());
         }
+
+        // 최종 결과 리턴
+        long endTime = System.currentTimeMillis();
+        long totalDuration = endTime - startTime;
+        log.info("MRP BOM Tree traversal completed successfully - Duration: {}ms, operationId: {}, purchaseCount: {}, productionCount: {}",
+                totalDuration,
+                operationId,
+                purchaseReports.size(),
+                productionReports.size());
 
         return new MrpCalculateResultDto(
                 0,
@@ -159,18 +208,23 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
         );
     }
 
-    private void processChildNodes(MrpNodeDto parentNode, UnifiedBomDataDto unifiedBomData, LinkedList<MrpNodeDto> deque) {
+    private void processChildNodes(MrpNodeDto parentNode,
+            UnifiedBomDataDto unifiedBomData,
+            LinkedList<MrpNodeDto> deque) {
         List<BomTree> children = unifiedBomData.bomTreeMap()
                 .getOrDefault(parentNode.product().getProductId(), Collections.emptyList());
 
         for (BomTree child : children) {
             long requiredCount = parentNode.requiredPartsCount() * child.getChildCompositionRatio();
-            MrpNodeDto childNode = new MrpNodeDto(
-                    child.getChildProduct(),
-                    requiredCount
-            );
+            MrpNodeDto childNode = new MrpNodeDto(child.getChildProduct(), requiredCount);
 
-            // 같은 품번이 있는지 검사 (같은 레벨 내에서)
+            // 로그 예시: 자식 노드 생성
+            log.debug("Child node - parentProduct: {}, childProduct: {}, childRequiredCount: {}",
+                    parentNode.product().getProductNumber(),
+                    childNode.product().getProductNumber(),
+                    childNode.requiredPartsCount());
+
+            // 같은 품번이 있는지 검사
             int duplicateIndex = -1;
             for (int i = 0; i < deque.size(); i++) {
                 MrpNodeDto node = deque.get(i);
@@ -189,5 +243,4 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
             }
         }
     }
-
 }

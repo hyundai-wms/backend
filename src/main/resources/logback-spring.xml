@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- Console Appender는 그대로 유지 -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Fluent Appender 수정 -->
+  <appender name="FLUENT" class="ch.qos.logback.more.appenders.DataFluentAppender">
+    <tag>mywarehome</tag>
+    <label>normal</label>
+    <remoteHost>localhost</remoteHost>
+    <port>24224</port>
+    <maxQueueSize>20</maxQueueSize>
+
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <includeContext>true</includeContext>
+      <includeMdc>true</includeMdc>
+      <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZZ</timestampPattern>
+      <!-- 메트릭 필드 추가 -->
+      <fieldNames>
+        <timestamp>@timestamp</timestamp>
+        <message>message</message>
+        <logger>logger_name</logger>
+        <thread>thread_name</thread>
+        <level>level</level>
+      </fieldNames>
+      <!-- MDC 키 명시적 포함 -->
+      <includeMdcKeyName>metric_type</includeMdcKeyName>
+      <includeMdcKeyName>execution_time_ms</includeMdcKeyName>
+      <includeMdcKeyName>purchase_count</includeMdcKeyName>
+      <includeMdcKeyName>production_count</includeMdcKeyName>
+      <includeMdcKeyName>exception_count</includeMdcKeyName>
+      <includeMdcKeyName>next_required_parts</includeMdcKeyName>
+      <includeMdcKeyName>lead_time_days</includeMdcKeyName>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="FLUENT" />
+  </root>
+
+  <logger name="com.myme.mywarehome" level="DEBUG" additivity="false">
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="FLUENT" />
+  </logger>
+</configuration>
