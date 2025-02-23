@@ -50,49 +50,48 @@ public class SecurityConfig {
                 .cors(cor -> cor.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth ->
                         auth
-                                .requestMatchers("**").permitAll()
-//                                // 공개 엔드포인트
-//                                .requestMatchers("/v1/auth/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-//                                .requestMatchers("/v1/productions/mrp/*/purchase/download",
-//                                        "/v1/productions/mrp/*/production/download",
-//                                        "/v1/productions/mrp/*/exception/download").permitAll()
-//
-//                                .requestMatchers(
-//                                        "/v1/notifications/worker-test",
-//                                        "/v1/notifications/wms-manager-test",
-//                                        "v1/notifications/middle-manager-test",
-//                                        "v1/notifications/admin-test",
-//                                        "v1/notifications/manually-send"
-//                                ).hasRole("ADMIN")
-//
-//                                .requestMatchers("/v1/notifications/**").hasRole("WORKER")
-//
-//                                // 자신의 정보 조회
-//                                .requestMatchers("/v1/users/me").hasRole("WORKER")
-//
-//                                // 총 관리자 전용 엔드포인트
-//                                .requestMatchers(
-//                                        "/v1/storages/receipts/complete",
-//                                        "/v1/storages/issues/complete",
-//                                        "/v1/users/**"
-//                                ).hasRole("ADMIN")
-//
-//                                // 중간 관리자 엔드포인트
-//                                .requestMatchers(
-//                                        "/v1/productions/**",
-//                                        "/v1/statistics/productions"
-//                                ).hasRole("MIDDLE_MANAGER")
-//
-//                                // WMS 관리자 엔드포인트
-//                                .requestMatchers(
-//                                        "/v1/storages/inventories",
-//                                        "/v1/storages/inventories/stream",
-//                                        "/v1/storages/inventories/*/details",
-//                                        "/v1/statistics/storages"
-//                                ).hasRole("WMS_MANAGER")
-//
-//                                // SSE 엔드포인트 및 나머지 모든 /v1/** 경로는 기본적으로 WORKER 이상의 권한 필요
-//                                .anyRequest().hasRole("WORKER")
+                                // 공개 엔드포인트
+                                .requestMatchers("/v1/auth/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                .requestMatchers("/v1/productions/mrp/*/purchase/download",
+                                        "/v1/productions/mrp/*/production/download",
+                                        "/v1/productions/mrp/*/exception/download").permitAll()
+
+                                .requestMatchers(
+                                        "/v1/notifications/worker-test",
+                                        "/v1/notifications/wms-manager-test",
+                                        "v1/notifications/middle-manager-test",
+                                        "v1/notifications/admin-test",
+                                        "v1/notifications/manually-send"
+                                ).hasRole("ADMIN")
+
+                                .requestMatchers("/v1/notifications/**").hasRole("WORKER")
+
+                                // 자신의 정보 조회
+                                .requestMatchers("/v1/users/me").hasRole("WORKER")
+
+                                // 총 관리자 전용 엔드포인트
+                                .requestMatchers(
+                                        "/v1/storages/receipts/complete",
+                                        "/v1/storages/issues/complete",
+                                        "/v1/users/**"
+                                ).hasRole("ADMIN")
+
+                                // 중간 관리자 엔드포인트
+                                .requestMatchers(
+                                        "/v1/productions/**",
+                                        "/v1/statistics/productions"
+                                ).hasRole("MIDDLE_MANAGER")
+
+                                // WMS 관리자 엔드포인트
+                                .requestMatchers(
+                                        "/v1/storages/inventories",
+                                        "/v1/storages/inventories/stream",
+                                        "/v1/storages/inventories/*/details",
+                                        "/v1/statistics/storages"
+                                ).hasRole("WMS_MANAGER")
+
+                                // SSE 엔드포인트 및 나머지 모든 /v1/** 경로는 기본적으로 WORKER 이상의 권한 필요
+                                .anyRequest().hasRole("WORKER")
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
