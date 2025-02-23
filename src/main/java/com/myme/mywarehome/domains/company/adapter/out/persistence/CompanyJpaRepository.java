@@ -11,16 +11,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
-    // Todo: mybatis로 변경
     @Query("""
     SELECT c FROM Company c 
     WHERE c.isVendor = true 
     AND (
         COALESCE(:code, '') = '' AND COALESCE(:name, '') = ''
         OR
-        (COALESCE(:code, '') <> '' AND c.companyCode LIKE %:code%)
+        (COALESCE(:code, '') <> '' AND LOWER(c.companyCode) LIKE LOWER(CONCAT('%', :code, '%')))
         OR 
-        (COALESCE(:name, '') <> '' AND c.companyName LIKE %:name%)
+        (COALESCE(:name, '') <> '' AND LOWER(c.companyName) LIKE LOWER(CONCAT('%', :name, '%')))
     )
     ORDER BY c.createdAt DESC
 """)
@@ -42,12 +41,12 @@ public interface CompanyJpaRepository extends JpaRepository<Company, Long> {
             "   CASE WHEN (COALESCE(:productNumber, '') != '' OR COALESCE(:productName, '') != '') "
             +
             "   THEN (" +
-            "       (COALESCE(:productNumber, '') != '' AND p.productNumber LIKE CONCAT('%', :productNumber, '%')) " +
-            "       OR (COALESCE(:productName, '') != '' AND p.productName LIKE CONCAT('%', :productName, '%')) " +
+            "       (COALESCE(:productNumber, '') != '' AND LOWER(p.productNumber) LIKE LOWER(CONCAT('%', :productNumber, '%'))) " +
+            "       OR (COALESCE(:productName, '') != '' AND LOWER(p.productName) LIKE LOWER(CONCAT('%', :productName, '%'))) " +
             "   ) " +
             "   ELSE true END" +
             ") " +
-            "AND (COALESCE(:applicableEngine, '') = '' OR p.applicableEngine LIKE CONCAT('%', :applicableEngine, '%'))")
+            "AND (COALESCE(:applicableEngine, '') = '' OR LOWER(p.applicableEngine) LIKE LOWER(CONCAT('%', :applicableEngine, '%')))")
     Page<Product> findInhouseByConditions(
             @Param("productNumber") String productNumber,
             @Param("productName") String productName,

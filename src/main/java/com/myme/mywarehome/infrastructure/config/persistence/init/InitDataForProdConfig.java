@@ -608,7 +608,7 @@ public class InitDataForProdConfig implements CommandLineRunner {
     }
 
     private void initializeRandomStocks(List<Product> products) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now().minusDays(1);
         Random random = new Random();
 
         for (Product product : products) {
