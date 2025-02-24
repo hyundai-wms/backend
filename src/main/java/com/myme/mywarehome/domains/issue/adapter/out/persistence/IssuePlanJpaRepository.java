@@ -71,7 +71,7 @@ SELECT new com.myme.mywarehome.domains.issue.application.port.in.result.TodayIss
     ip.updatedAt
 )
 FROM IssuePlan ip
-WHERE ip.issuePlanDate >= :selectedDate
+WHERE ip.issuePlanDate = :selectedDate
 """)
     Page<TodayIssueResult> findTodayIssues(LocalDate selectedDate, Pageable pageable);
 
