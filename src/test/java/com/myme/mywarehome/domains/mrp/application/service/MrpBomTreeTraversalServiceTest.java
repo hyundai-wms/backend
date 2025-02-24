@@ -5,11 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.myme.mywarehome.domains.company.application.domain.Company;
-import com.myme.mywarehome.domains.mrp.application.domain.BomTree;
-import com.myme.mywarehome.domains.mrp.application.domain.InventoryRecord;
-import com.myme.mywarehome.domains.mrp.application.domain.InventoryRecordItem;
-import com.myme.mywarehome.domains.mrp.application.domain.ProductionPlanningReport;
-import com.myme.mywarehome.domains.mrp.application.domain.PurchaseOrderReport;
+import com.myme.mywarehome.domains.mrp.application.domain.*;
 import com.myme.mywarehome.domains.mrp.application.port.in.MrpCalculatorUseCase;
 import com.myme.mywarehome.domains.mrp.application.port.in.command.MrpInputCommand;
 import com.myme.mywarehome.domains.mrp.application.service.dto.MrpCalculateResultDto;
@@ -242,6 +238,245 @@ class MrpBomTreeTraversalServiceTest {
         // then
         assertThat(result.purchaseOrderReports()).hasSize(3);
         assertThat(result.productionPlanningReports()).hasSize(1);
+        assertThat(result.mrpExceptionReports()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("MRP 예외가 발생했을 때 문제 노드를 생성하고 적절한 해결책을 제시한다")
+    void traverse_withMrpExceptions_shouldCreateProblemNodesAndSolutions() {
+        // given
+        Map<String, Integer> engineCountMap = Map.of("kappa", 1);
+        MrpInputCommand command = new MrpInputCommand(engineCountMap, dueDate);
+
+        List<BomTree> bomTrees = List.of(
+                BomTree.builder()
+                        .parentProduct(virtualRoot)
+                        .childProduct(parentProduct)
+                        .childCompositionRatio(1)
+                        .build(),
+                BomTree.builder()
+                        .parentProduct(parentProduct)
+                        .childProduct(childProduct)
+                        .childCompositionRatio(2)
+                        .build()
+        );
+
+        Map<Long, List<BomTree>> bomTreeMap = new HashMap<>();
+        bomTreeMap.put(-1L, List.of(bomTrees.get(0)));
+        bomTreeMap.put(1L, List.of(bomTrees.get(1)));
+
+        UnifiedBomDataDto unifiedBomData = new UnifiedBomDataDto(
+                virtualRoot,
+                bomTrees,
+                bomTreeMap
+        );
+
+        MrpContextDto context = MrpContextDto.builder()
+                .inventoryRecord(inventoryRecordMap)
+                .computedDate(LocalDate.now())
+                .build();
+
+        // Mock calculator to return an exception for the child product
+        when(mrpCalculatorUseCase.calculate(any(MrpNodeDto.class), any(MrpContextDto.class)))
+                .thenAnswer(invocation -> {
+                    MrpNodeDto node = invocation.getArgument(0);
+                    if (node.product().getProductNumber().equals("CHILD-001")) {
+                        MrpExceptionReport exceptionReport = MrpExceptionReport.builder()
+                                .exceptionType("LEAD_TIME_VIOLATION")
+                                .exceptionMessage("리드타임이 납기일을 초과합니다")
+                                .build();
+                        return MrpCalculateResultDto.withException(exceptionReport);
+                    }
+                    return new MrpCalculateResultDto(
+                            0,
+                            new ArrayList<>(),
+                            new ArrayList<>(),
+                            new ArrayList<>(),
+                            5
+                    );
+                });
+
+        // when
+        MrpCalculateResultDto result = mrpBomTreeTraversalService.traverse(
+                command,
+                unifiedBomData,
+                context
+        );
+
+        // then
+        assertThat(result.mrpExceptionReports()).hasSize(1);
+        assertThat(result.mrpExceptionReports().get(0))
+                .satisfies(report -> {
+                    assertThat(report.getExceptionType()).isEqualTo("LEAD_TIME_VIOLATION");
+                    assertThat(report.getSolution()).contains("최소 납기일은");
+                });
+    }
+
+    @Test
+    @DisplayName("여러 벤더의 리드타임이 다를 때 최대 리드타임 기준으로 발주일을 조정한다")
+    void traverse_withMultipleVendors_shouldAdjustOrderDatesBasedOnMaxLeadTime() {
+        // given
+        Map<String, Integer> engineCountMap = Map.of("kappa", 1);
+        MrpInputCommand command = new MrpInputCommand(engineCountMap, dueDate);
+
+        // Create another vendor product with different lead time
+        Product anotherVendorProduct = Product.builder()
+                .productId(3L)
+                .productNumber("VENDOR-002")
+                .productName("Another Vendor Product")
+                .company(vendorCompany)
+                .bayList(new ArrayList<>())  // bayList 초기화 추가
+                .build();
+
+        // Add to inventory record map
+        inventoryRecordMap.put(anotherVendorProduct.getProductId(),
+                InventoryRecordItem.builder()
+                        .inventoryRecord(inventoryRecord)
+                        .product(anotherVendorProduct)
+                        .stockCount(30L)
+                        .compositionRatio(1)
+                        .leadTime(15) // 더 긴 리드타임
+                        .build()
+        );
+
+        List<BomTree> bomTrees = List.of(
+                BomTree.builder()
+                        .parentProduct(virtualRoot)
+                        .childProduct(parentProduct)
+                        .childCompositionRatio(1)
+                        .build(),
+                BomTree.builder()
+                        .parentProduct(parentProduct)
+                        .childProduct(childProduct)
+                        .childCompositionRatio(2)
+                        .build(),
+                BomTree.builder()
+                        .parentProduct(parentProduct)
+                        .childProduct(anotherVendorProduct)
+                        .childCompositionRatio(1)
+                        .build()
+        );
+
+        Map<Long, List<BomTree>> bomTreeMap = new HashMap<>();
+        bomTreeMap.put(-1L, List.of(bomTrees.get(0)));
+        bomTreeMap.put(1L, List.of(bomTrees.get(1), bomTrees.get(2)));
+
+        UnifiedBomDataDto unifiedBomData = new UnifiedBomDataDto(
+                virtualRoot,
+                bomTrees,
+                bomTreeMap
+        );
+
+        LocalDate computedDate = LocalDate.now();
+        MrpContextDto context = MrpContextDto.builder()
+                .inventoryRecord(inventoryRecordMap)
+                .computedDate(computedDate)
+                .build();
+
+        // Mock calculator to return different lead times for vendor products
+        when(mrpCalculatorUseCase.calculate(any(MrpNodeDto.class), any(MrpContextDto.class)))
+                .thenAnswer(invocation -> {
+                    MrpNodeDto node = invocation.getArgument(0);
+                    if (node.product().getCompany().getIsVendor()) {
+                        int leadTime = node.product().getProductNumber().equals("VENDOR-002") ? 15 : 5;
+                        return new MrpCalculateResultDto(
+                                0,
+                                List.of(PurchaseOrderReport.builder()
+                                        .product(node.product())
+                                        .purchaseOrderDate(computedDate)
+                                        .quantity(node.requiredPartsCount())
+                                        .build()),
+                                new ArrayList<>(),
+                                new ArrayList<>(),
+                                leadTime
+                        );
+                    }
+                    return new MrpCalculateResultDto(
+                            0,
+                            new ArrayList<>(),
+                            List.of(ProductionPlanningReport.builder()
+                                    .product(node.product())
+                                    .quantity(1L)
+                                    .build()),
+                            new ArrayList<>(),
+                            0
+                    );
+                });
+
+        // when
+        MrpCalculateResultDto result = mrpBomTreeTraversalService.traverse(
+                command,
+                unifiedBomData,
+                context
+        );
+
+        // then
+        assertThat(result.purchaseOrderReports()).hasSize(2);
+
+        // All purchase orders should be adjusted to the longest lead time
+        for (PurchaseOrderReport report : result.purchaseOrderReports()) {
+            assertThat(report.getPurchaseOrderDate())
+                    .isEqualTo(computedDate.minusDays(15));
+        }
+    }
+
+    @Test
+    @DisplayName("빈 자식 노드 리스트를 가진 제품을 처리할 수 있다")
+    void traverse_withEmptyChildNodes_shouldHandleGracefully() {
+        // given
+        Map<String, Integer> engineCountMap = Map.of("kappa", 1);
+        MrpInputCommand command = new MrpInputCommand(engineCountMap, dueDate);
+
+        Product leafProduct = Product.builder()
+                .productId(3L)
+                .productNumber("LEAF-001")
+                .productName("Leaf Product")
+                .company(normalCompany)
+                .bayList(new ArrayList<>())  // bayList 초기화 추가
+                .build();
+
+        List<BomTree> bomTrees = List.of(
+                BomTree.builder()
+                        .parentProduct(virtualRoot)
+                        .childProduct(leafProduct)
+                        .childCompositionRatio(1)
+                        .build()
+        );
+
+        Map<Long, List<BomTree>> bomTreeMap = new HashMap<>();
+        bomTreeMap.put(-1L, List.of(bomTrees.get(0)));
+        // Deliberately not adding any children for leafProduct
+
+        UnifiedBomDataDto unifiedBomData = new UnifiedBomDataDto(
+                virtualRoot,
+                bomTrees,
+                bomTreeMap
+        );
+
+        MrpContextDto context = MrpContextDto.builder()
+                .inventoryRecord(inventoryRecordMap)
+                .computedDate(LocalDate.now())
+                .build();
+
+        when(mrpCalculatorUseCase.calculate(any(MrpNodeDto.class), any(MrpContextDto.class)))
+                .thenReturn(new MrpCalculateResultDto(
+                        0,
+                        List.of(PurchaseOrderReport.builder().quantity(1L).build()),
+                        new ArrayList<>(),
+                        new ArrayList<>(),
+                        5
+                ));
+
+        // when
+        MrpCalculateResultDto result = mrpBomTreeTraversalService.traverse(
+                command,
+                unifiedBomData,
+                context
+        );
+
+        // then
+        assertThat(result.purchaseOrderReports()).hasSize(1);
+        assertThat(result.productionPlanningReports()).isEmpty();
         assertThat(result.mrpExceptionReports()).isEmpty();
     }
 }

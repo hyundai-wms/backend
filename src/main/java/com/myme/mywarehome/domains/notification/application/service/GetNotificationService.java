@@ -89,7 +89,7 @@ public class GetNotificationService implements GetNotificationUseCase {
         }
     }
 
-    private Set<Role> getExpandedRoles(Role role) {
+    Set<Role> getExpandedRoles(Role role) {
         Set<Role> expandedRoles = new HashSet<>();
         switch (role) {
             case ROLE_ADMIN -> expandedRoles.add(Role.ROLE_ADMIN);
