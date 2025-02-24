@@ -34,7 +34,6 @@ public class CreateStockService implements CreateStockUseCase {
         // 2. 일단 저장하여 stockId를 생성하고, stockCode 생성
         Stock createdStock = createStockPort.create(stock);
 
-        // todo : 적치 전략 알고리즘 설계
         // 현재는 bayNumber 오름차순으로 빈 bin을 가져옴.
         // 3. 적치 전략에 따른 bin을 가져옴
         Bin bin = getBinPort.findBinByProductNumber(receipt.getReceiptPlan().getProduct().getProductNumber())
