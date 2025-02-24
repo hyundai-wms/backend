@@ -58,6 +58,9 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
             // 실제 제품 노드 처리
             MrpCalculateResultDto result = mrpCalculatorUseCase.calculate(currentNode, context);
             if (result.hasExceptions()) {
+                int bayListSize = currentNode.product().getBayList() != null
+                        ? currentNode.product().getBayList().size()
+                        : 0;
                 // 수정: 예외를 바로 반환하지 않고 저장
                 problemNodes.add(new MrpProblemNode(
                         currentNode.product(),
@@ -65,7 +68,7 @@ public class MrpBomTreeTraversalService implements MrpBomTreeTraversalUseCase {
                         result.mrpExceptionReports().get(0).getExceptionMessage(),
                         currentNode.requiredPartsCount(),
                         result.leadTimeDays(),
-                        currentNode.product().getBayList().size() * 10
+                        bayListSize * 10
                 ));
                 if (currentNode.product().getCompany().getIsVendor()) {
                     vendorResults.add(result);
